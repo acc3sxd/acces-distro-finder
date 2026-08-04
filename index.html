@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acces Distro Finder</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0f0f0f; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card { background-color: #161616; width: 100%; max-width: 500px; padding: 30px; border-radius: 14px; border: 1px solid #2a1a1a; box-shadow: 0 10px 30px rgba(229, 9, 20, 0.15); position: relative; }
+    h1 { color: #e50914; font-size: 24px; text-align: center; margin-top: 0; margin-bottom: 5px; font-weight: 800; }
+    .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 20px; }
+    .credit-badge { background: rgba(229, 9, 20, 0.2); border: 1px solid #e50914; color: #ff4d4d; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; width: fit-content; margin: 0 auto 20px auto; text-align: center; }
+    input[type="text"] { width: 100%; background-color: #222; color: #fff; border: 1px solid #3a2222; padding: 14px; border-radius: 8px; outline: none; margin-bottom: 14px; font-size: 14px; }
+    input:focus { border-color: #e50914; }
+    button { width: 100%; background-color: #e50914; color: #fff; border: none; padding: 14px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 15px; }
+    button:hover { background-color: #ff1e27; }
+    .btn-buy { background-color: #25d366; color: #000; margin-top: 10px; }
+    .btn-buy:hover { background-color: #1eb956; }
+    #loader { display: none; text-align: center; color: #ff4d4d; font-size: 13px; margin-top: 15px; }
+    #result { display: none; margin-top: 25px; padding: 20px; background-color: #201a1a; border-radius: 10px; border: 1px solid #3d2222; }
+    .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+    .distro-value { color: #ff2a2a; font-weight: bold; font-size: 16px; text-align: right; }
+    .err { color: #ff5555; text-align: center; font-size: 13px; margin-top: 12px; display: none; background: rgba(255, 0, 0, 0.1); padding: 10px; border-radius: 6px; }
+    .key-section { border-top: 1px dashed #3a2222; margin-top: 25px; padding-top: 15px; display: flex; gap: 8px; }
+    .key-section input { margin-bottom: 0; font-size: 12px; }
+    .key-section button { width: 40%; font-size: 12px; padding: 10px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🎧 Acces Distro Finder</h1>
+    <div class="subtitle">Spotify Şarkı Distribütör Analizi</div>
+    
+    <div class="credit-badge" id="creditDisplay">Kalan Hak: 3</div>
+
+    <input type="text" id="url" placeholder="https://open.spotify.com/track/...">
+    <button onclick="checkDistro()">Distribütörü Yakala</button>
+    <a href="https://www.shopier.com" target="_blank" style="text-decoration: none;">
+      <button type="button" class="btn-buy" id="buyBtn" style="display:none;">🔑 Hak Satın Al (Shopier)</button>
+    </a>
+    
+    <div id="loader">🌐 Sorgulanıyor...</div>
+    <div id="err" class="err"></div>
+
+    <div id="result">
+      <div class="row"><span>Şarkı:</span><span id="sTitle" style="color:#fff; font-weight:bold;"></span></div>
+      <div class="row"><span>Sanatçı:</span><span id="sArtist" style="color:#bbb"></span></div>
+      <hr style="border-color:#3d2222; margin:12px 0;">
+      <div class="row"><span>Gerçek Distribütör:</span><span id="sDistro" class="distro-value"></span></div>
+      <div class="row"><span>ISRC Kodu:</span><span id="sIsrc" style="color:#bbb; font-family:monospace"></span></div>
+      <div class="row"><span>Barkod (UPC/EAN):</span><span id="sUpc" style="color:#bbb; font-family:monospace"></span></div>
+      <div class="row"><span>Telif / Label:</span><span id="sLabel" style="color:#aaa; font-size:12px"></span></div>
+      <div class="row"><span>Tespit Kaynağı:</span><span id="sSource" style="color:#888; font-size:11px"></span></div>
+    </div>
+
+    <!-- Key Girme Kutusu -->
+    <div class="key-section">
+      <input type="text" id="keyInput" placeholder="Lisans / Pro Key Gir">
+      <button onclick="redeemKey()" style="background-color: #333;">Kodu Kullan</button>
+    </div>
+  </div>
+
+  <script>
+    // Tarayıcı hafızasında sorgu hakkını tut
+    let credits = parseInt(localStorage.getItem('acces_credits') || '3');
+
+    function updateCreditUI() {
+      document.getElementById('creditDisplay').innerText = `Kalan Hak: ${credits}`;
+      if (credits <= 0) {
+        document.getElementById('buyBtn').style.display = 'block';
+      } else {
+        document.getElementById('buyBtn').style.display = 'none';
+      }
+      localStorage.setItem('acces_credits', credits.toString());
+    }
+
+    updateCreditUI();
+
+    async function checkDistro() {
+      if (credits <= 0) {
+        const err = document.getElementById('err');
+        err.innerText = "Sorgu hakkınız bitti! Devam etmek için key satın alabilirsiniz.";
+        err.style.display = 'block';
+        return;
+      }
+
+      const trackUrl = document.getElementById('url').value.trim();
+      const err = document.getElementById('err');
+      const loader = document.getElementById('loader');
+      const resDiv = document.getElementById('result');
+      
+      err.style.display = 'none';
+      resDiv.style.display = 'none';
+      loader.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trackUrl })
+        });
+        
+        const data = await response.json();
+
+        if (!response.ok) {
+          loader.style.display = 'none';
+          err.innerText = data.error || "Hata oluştu!";
+          err.style.display = 'block';
+          return;
+        }
+
+        // Başarılı sorguda hakkı düş
+        credits--;
+        updateCreditUI();
+
+        document.getElementById('sTitle').innerText = data.title;
+        document.getElementById('sArtist').innerText = data.artist;
+        document.getElementById('sDistro').innerText = data.distro;
+        document.getElementById('sIsrc').innerText = data.isrc;
+        document.getElementById('sUpc').innerText = data.upc;
+        document.getElementById('sLabel').innerText = data.label;
+        document.getElementById('sSource').innerText = data.source;
+
+        loader.style.display = 'none';
+        resDiv.style.display = 'block';
+      } catch (e) {
+        loader.style.display = 'none';
+        err.innerText = "Sunucuya bağlanılamadı!";
+        err.style.display = 'block';
+      }
+    }
+
+    async function redeemKey() {
+      const userKey = document.getElementById('keyInput').value.trim();
+      if (!userKey) return alert("Lütfen bir key girin!");
+
+      try {
+        const res = await fetch('/api/redeem-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userKey })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          credits += data.credits;
+          updateCreditUI();
+          alert(`Tebrikler! ${data.credits} yeni sorgu hakkı eklendi.`);
+          document.getElementById('keyInput').value = '';
+          document.getElementById('err').style.display = 'none';
+        } else {
+          alert(data.error);
+        }
+      } catch(e) {
+        alert("Bağlantı hatası!");
+      }
+    }
+  </script>
+</body>
+</html>

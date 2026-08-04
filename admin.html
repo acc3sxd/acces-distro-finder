@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acces Admin Panel</title>
+  <style>
+    * { box-sizing: border-box; font-family: sans-serif; }
+    body { background: #111; color: #fff; padding: 30px; display: flex; justify-content: center; }
+    .box { background: #1a1a1a; padding: 25px; border-radius: 12px; width: 100%; max-width: 600px; border: 1px solid #333; }
+    h2 { color: #e50914; margin-top: 0; }
+    input, button { padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
+    button { background: #e50914; border: none; font-weight: bold; cursor: pointer; }
+    button:hover { background: #ff2a2a; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 13px; }
+    th { background: #252525; color: #e50914; }
+    .status-used { color: #ff4d4d; font-weight: bold; }
+    .status-active { color: #25d366; font-weight: bold; }
+    .login-screen { display: block; text-align: center; }
+    .dashboard { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <!-- Giriş Ekranı -->
+    <div id="loginScreen" class="login-screen">
+      <h2>🔐 Admin Girişi</h2>
+      <input type="password" id="adminPass" placeholder="Admin Şifresi">
+      <button onclick="login()">Giriş Yap</button>
+    </div>
+
+    <!-- Yönetim Paneli -->
+    <div id="dashboard" class="dashboard">
+      <h2>👑 Acces Yönetim Paneli</h2>
+      
+      <!-- Key Üretici -->
+      <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h4 style="margin-top:0;">Yeni Key Üret</h4>
+        <input type="number" id="keyCredits" value="100" placeholder="Sorgu Hakkı" style="width: 120px;">
+        <button onclick="createKey()">Key Oluştur</button>
+      </div>
+
+      <!-- Key Listesi -->
+      <h3>🔑 Sistemdeki Key'ler</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Key (Kod)</th>
+            <th>Hak</th>
+            <th>Durum</th>
+            <th>Tarih</th>
+          </tr>
+        </thead>
+        <tbody id="keyTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentPass = "";
+
+    async function login() {
+      const pass = document.getElementById('adminPass').value;
+      try {
+        const res = await fetch('/api/admin/list', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pass })
+        });
+        
+        if (res.ok) {
+          currentPass = pass;
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('dashboard').style.display = 'block';
+          loadKeys(await res.json());
+        } else {
+          alert("Hatalı Şifre!");
+        }
+      } catch(e) { alert("Sunucu hatası!"); }
+    }
+
+    function loadKeys(data) {
+      const tbody = document.getElementById('keyTable');
+      tbody.innerHTML = '';
+      
+      for (const [key, info] of Object.entries(data.keys)) {
+        const row = `<tr>
+          <td style="font-family:monospace; color:#fff;"><b>${key}</b></td>
+          <td>${info.credits} Sorgu</td>
+          <td>${info.isUsed ? '<span class="status-used">Kullanıldı</span>' : '<span class="status-active">Aktif (Kullanılmadı)</span>'}</td>
+          <td>${info.createdAt || '-'}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      }
+    }
+
+    async function createKey() {
+      const credits = document.getElementById('keyCredits').value;
+      try {
+        const res = await fetch('/api/admin/create-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: currentPass, credits })
+        });
+        
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Yeni Key Üretildi:\n\n${data.newKey}\n\nBu kodu müşteriye gönderebilirsin!`);
+          // Listeyi Yenile
+          const listRes = await fetch('/api/admin/list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: currentPass })
+          });
+          loadKeys(await listRes.json());
+        }
+      } catch(e) { alert("Key oluşturulamadı!"); }
+    }
+  </script>
+</body>
+</html>

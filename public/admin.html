@@ -2,34 +2,52 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Paneli</title>
+  <title>Admin Paneli - Acces Distro</title>
   <style>
-    body { background-color: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .box { background: #2a2a2a; padding: 30px; border-radius: 8px; width: 350px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-    input, button { width: 100%; padding: 10px; margin-top: 15px; border-radius: 4px; border: none; font-size: 14px; box-sizing: border-box; }
+    body { background-color: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .box { background: #2a2a2a; padding: 25px; border-radius: 8px; width: 650px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); margin: 20px; }
+    input, button { width: 100%; padding: 10px; margin-top: 10px; border-radius: 4px; border: none; font-size: 14px; box-sizing: border-box; }
     input { background: #333; color: #fff; border: 1px solid #444; }
-    button { background: #e74c3c; color: #white; font-weight: bold; cursor: pointer; }
+    button { background: #e74c3c; color: #fff; font-weight: bold; cursor: pointer; }
     button:hover { background: #c0392b; }
     table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; text-align: left; }
     th, td { padding: 8px; border-bottom: 1px solid #444; }
+    h3 { margin-top: 20px; color: #ff3333; text-align: left; font-size: 15px; }
   </style>
 </head>
 <body>
 
   <div class="box" id="login-box">
     <h2>Admin Girişi</h2>
-    <input type="password" id="pass" placeholder="Şifre">
+    <input type="password" id="pass" placeholder="Admin Şifresi">
     <button onclick="login()">Giriş Yap</button>
   </div>
 
-  <div class="box" id="panel-box" style="display:none; width: 600px;">
-    <h2>Lisans Yönetimi</h2>
-    <input type="number" id="rights" value="100" placeholder="Hak sayısı">
-    <button onclick="generateKey()" style="background: #2ecc71;">Key Üret</button>
+  <div class="box" id="panel-box" style="display:none;">
+    <h2>Admin Yönetim Paneli</h2>
+    
+    <h3>Key Üret</h3>
+    <input type="number" id="rights" value="10" placeholder="Hak sayısı">
+    <button onclick="generateKey()" style="background: #2ecc71;">ACCES- Key Üret</button>
+
+    <h3>Hak Talep Edenler</h3>
+    <table>
+      <thead><tr><th>Mail</th><th>İşlem</th></tr></thead>
+      <tbody id="requests-list"><tr><td colspan="2">Talep yok.</td></tr></tbody>
+    </table>
+
+    <h3>Kullanıcılar ve Hakları</h3>
+    <table>
+      <thead><tr><th>Mail</th><th>Kalan Hak</th></tr></thead>
+      <tbody id="users-list"></tbody>
+    </table>
+
+    <h3>Üretilen Keyler</h3>
     <table>
       <thead><tr><th>Key Kodu</th><th>Hak</th><th>İşlem</th></tr></thead>
       <tbody id="keys-list"></tbody>
     </table>
+
     <button onclick="location.reload()" style="background: #555; margin-top: 20px;">Çıkış Yap</button>
   </div>
 
@@ -37,23 +55,43 @@
     let token = '';
     async function login() {
       token = document.getElementById('pass').value;
-      const res = await fetch('/api/admin/keys', { headers: { 'x-admin-password': token } });
+      const res = await fetch('/api/admin/data', { headers: { 'x-admin-password': token } });
       if (res.ok) {
         document.getElementById('login-box').style.display = 'none';
         document.getElementById('panel-box').style.display = 'block';
-        loadKeys();
+        loadData();
       } else {
         alert('Hatalı Şifre!');
       }
     }
 
-    async function loadKeys() {
-      const res = await fetch('/api/admin/keys', { headers: { 'x-admin-password': token } });
-      const keys = await res.json();
-      const tbody = document.getElementById('keys-list');
-      tbody.innerHTML = '';
-      for (const [k, v] of Object.entries(keys)) {
-        tbody.innerHTML += `<tr><td>${k}</td><td>${v}</td><td><button onclick="deleteKey('${k}')" style="background:#c0392b; padding:4px 8px; margin:0;">Sil</button></td></tr>`;
+    async function loadData() {
+      const res = await fetch('/api/admin/data', { headers: { 'x-admin-password': token } });
+      const data = await res.json();
+      
+      // Talepler
+      const reqTbody = document.getElementById('requests-list');
+      reqTbody.innerHTML = '';
+      if (data.requests.length === 0) {
+        reqTbody.innerHTML = `<tr><td colspan="2" style="color:#888;">Bekleyen talep yok.</td></tr>`;
+      } else {
+        data.requests.forEach(r => {
+          reqTbody.innerHTML += `<tr><td>${r.email}</td><td><button onclick="approveRequest('${r.email}')" style="background:#2ecc71; padding:4px 8px; margin:0;">+5 Hak Ver & Onayla</button></td></tr>`;
+        });
+      }
+
+      // Kullanıcılar
+      const userTbody = document.getElementById('users-list');
+      userTbody.innerHTML = '';
+      for (const [mail, info] of Object.entries(data.users)) {
+        userTbody.innerHTML += `<tr><td>${mail}</td><td>${info.rights} Hak</td></tr>`;
+      }
+
+      // Keyler
+      const keyTbody = document.getElementById('keys-list');
+      keyTbody.innerHTML = '';
+      for (const [k, v] of Object.entries(data.keys)) {
+        keyTbody.innerHTML += `<tr><td>${k}</td><td>${v}</td><td><button onclick="deleteKey('${k}')" style="background:#c0392b; padding:4px 8px; margin:0;">Sil</button></td></tr>`;
       }
     }
 
@@ -67,8 +105,18 @@
       const data = await res.json();
       if (data.success) {
         alert('Oluşturulan Key: ' + data.key);
-        loadKeys();
+        loadData();
       }
+    }
+
+    async function approveRequest(email) {
+      await fetch('/api/admin/add-rights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': token },
+        body: JSON.stringify({ email, amount: 5 })
+      });
+      alert(email + ' adresine 5 hak tanımlandı!');
+      loadData();
     }
 
     async function deleteKey(key) {
@@ -77,7 +125,7 @@
         headers: { 'Content-Type': 'application/json', 'x-admin-password': token },
         body: JSON.stringify({ key })
       });
-      loadKeys();
+      loadData();
     }
   </script>
 </body>

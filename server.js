@@ -1,88 +1,124 @@
 const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
-
+const fs = require('fs');
 const app = express();
-app.use(cors());
+const PORT = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Admin Şifresi Güncellendi
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '03omer07';
-
+// Veritabanı dosyaları
+const USERS_FILE = path.join(__dirname, 'users.json');
 const KEYS_FILE = path.join(__dirname, 'keys.json');
 
-function getKeys() {
-  if (!fs.existsSync(KEYS_FILE)) {
-    fs.writeFileSync(KEYS_FILE, JSON.stringify({
-      "ACCES-PRO-100-XYZ1": 100,
-      "ACCES-VIP-UNLIMITED": 99999
-    }, null, 2));
-  }
-  return JSON.parse(fs.readFileSync(KEYS_FILE, 'utf8'));
-}
+// Dosyalar yoksa oluştur
+if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, JSON.stringify({}));
+if (!fs.existsSync(KEYS_FILE)) fs.writeFileSync(KEYS_FILE, JSON.stringify({}));
 
-function saveKeys(keys) {
-  fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2));
-}
+function getUsers() { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); }
+function saveUsers(users) { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); }
 
-function authAdmin(req, res, next) {
-  const pass = req.headers['x-admin-password'];
-  if (pass === ADMIN_PASSWORD) {
-    next();
+function getKeys() { return JSON.parse(fs.readFileSync(KEYS_FILE, 'utf8')); }
+function saveKeys(keys) { fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2)); }
+
+// --- KULLANICI İŞLEMLERİ (KAYIT & GİRİŞ) ---
+
+app.post('/api/register', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.json({ success: false, message: 'Tüm alanları doldurun!' });
+
+  let users = getUsers();
+  if (users[email]) return res.json({ success: false, message: 'Bu mail zaten kayıtlı!' });
+
+  users[email] = { password, rights: 10 }; // Yeni kayıt olana başlangıç 10 hak
+  saveUsers(users);
+  res.json({ success: true });
+});
+
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  let users = getUsers();
+
+  if (users[email] && users[email].password === password) {
+    res.json({ success: true });
   } else {
-    res.status(401).json({ error: 'Yetkisiz erişim!' });
+    res.json({ success: false, message: 'Hatalı mail veya şifre!' });
   }
-}
+});
 
-app.post('/api/verify-key', (req, res) => {
-  const { key } = req.body;
-  const keys = getKeys();
-
-  if (keys[key] && keys[key] > 0) {
-    keys[key] -= 1;
-    saveKeys(keys);
-    return res.json({ valid: true, remaining: keys[key] });
+app.get('/api/user-info', (req, res) => {
+  const email = req.query.email;
+  let users = getUsers();
+  if (users[email]) {
+    res.json({ success: true, rights: users[email].rights });
+  } else {
+    res.json({ success: false });
   }
-  return res.json({ valid: false });
 });
 
-app.get('/api/admin/keys', authAuth => authAdmin, (req, res) => {
-  // Yukarıdaki satır hızlı düzeltme için altta doğru fonksiyona bağlandı
+// --- SORGULAMA ---
+app.post('/api/query', (req, res) => {
+  const { email, query } = req.body;
+  let users = getUsers();
+
+  if (!users[email] || users[email].rights <= 0) {
+    return res.json({ success: false, message: 'Yetersiz hak veya kullanıcı bulunamadı!' });
+  }
+
+  users[email].rights -= 1;
+  saveUsers(users);
+
+  res.json({
+    success: true,
+    remainingRights: users[email].rights,
+    result: `"${query}" başarıyla sorgulandı.`
+  });
 });
 
-// Admin: Key'leri Getir
-app.get('/api/admin/keys', authAdmin, (req, res) => {
-  res.json(getKeys());
+// --- ADMIN PANELİ İŞLEMLERİ ---
+
+const ADMIN_PASS = '03omer07';
+
+app.get('/api/admin/keys', (req, res) => {
+  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
+    return res.status(401).json({ error: 'Yetkisiz!' });
+  }
+  // Admin paneli için kullanıcıları listeleyelim (Key/Mail yönetimi)
+  let users = getUsers();
+  let userMap = {};
+  Object.keys(users).forEach(mail => {
+    userMap[mail] = users[mail].rights;
+  });
+  res.json(userMap);
 });
 
-// Admin: Yeni Key Üret
-app.post('/api/admin/generate-key', authAdmin, (req, res) => {
+app.post('/api/admin/generate-key', (req, res) => {
+  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
+    return res.status(401).json({ error: 'Yetkisiz!' });
+  }
   const { rights } = req.body;
-  const keys = getKeys();
+  const randomKey = 'DISTRO-' + Math.random().toString(36).substring(2, 10).toUpperCase();
   
-  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-  const newKey = `ACCES-KEY-${randomStr}`;
-  
-  keys[newKey] = parseInt(rights) || 100;
+  let keys = getKeys();
+  keys[randomKey] = rights || 100;
   saveKeys(keys);
-  
-  res.json({ success: true, key: newKey });
+
+  res.json({ success: true, key: randomKey });
 });
 
-// Admin: Key Sil / İptal Et
-app.post('/api/admin/delete-key', authAdmin, (req, res) => {
-  const { key } = req.body;
-  const keys = getKeys();
-
-  if (keys[key] !== undefined) {
-    delete keys[key];
-    saveKeys(keys);
-    return res.json({ success: true });
+app.post('/api/admin/delete-key', (req, res) => {
+  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
+    return res.status(401).json({ error: 'Yetkisiz!' });
   }
-  res.status(404).json({ success: false, error: 'Key bulunamadı' });
+  const { key } = req.body;
+  let users = getUsers();
+  if (users[key]) {
+    delete users[key];
+    saveUsers(users);
+  }
+  res.json({ success: true });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Sunucu ${PORT} portunda çalışıyor.`));
+app.listen(PORT, () => {
+  console.log(`Sunucu ${PORT} portunda çalışıyor.`);
+});

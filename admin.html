@@ -5,119 +5,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acces Admin Panel</title>
   <style>
-    * { box-sizing: border-box; font-family: sans-serif; }
-    body { background: #111; color: #fff; padding: 30px; display: flex; justify-content: center; }
-    .box { background: #1a1a1a; padding: 25px; border-radius: 12px; width: 100%; max-width: 600px; border: 1px solid #333; }
-    h2 { color: #e50914; margin-top: 0; }
-    input, button { padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
-    button { background: #e50914; border: none; font-weight: bold; cursor: pointer; }
-    button:hover { background: #ff2a2a; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 13px; }
-    th { background: #252525; color: #e50914; }
-    .status-used { color: #ff4d4d; font-weight: bold; }
-    .status-active { color: #25d366; font-weight: bold; }
-    .login-screen { display: block; text-align: center; }
-    .dashboard { display: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .admin-card { background-color: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 650px; border: 1px solid #334155; }
+    h1 { font-size: 24px; margin-bottom: 20px; color: #38bdf8; text-align: center; }
+    .section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #334155; }
+    label { display: block; margin-bottom: 8px; font-size: 14px; color: #94a3b8; }
+    input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 15px; }
+    button { padding: 10px 15px; border: none; border-radius: 6px; background-color: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    .btn-create { width: 100%; padding: 12px; background-color: #22c55e; color: #fff; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; }
+    th { color: #38bdf8; }
+    .btn-delete { background-color: #ef4444; color: #fff; margin-left: 5px; }
+    .btn-copy { background-color: #334155; color: #38bdf8; }
+    #login-form, #admin-content { display: none; }
+
+    /* ŞIK POPUP KUTUSU (MODAL) */
+    .modal-bg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:99999; }
+    .modal-box { background: #1e293b; padding: 25px; border-radius: 12px; border: 2px solid #38bdf8; text-align: center; max-width: 400px; width: 90%; }
+    .key-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 20px; padding: 15px; margin: 15px 0; border-radius: 6px; border: 1px dashed #38bdf8; word-break: break-all; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <div class="box">
-    <!-- Giriş Ekranı -->
-    <div id="loginScreen" class="login-screen">
-      <h2>🔐 Admin Girişi</h2>
-      <input type="password" id="adminPass" placeholder="Admin Şifresi">
-      <button onclick="login()">Giriş Yap</button>
+  <div class="admin-card">
+    <div id="login-form">
+      <h1>👑 Admin Girişi</h1>
+      <label>Admin Şifresi</label>
+      <input type="password" id="admin-pass" placeholder="Şifre">
+      <button class="btn-create" onclick="login()">Giriş Yap</button>
     </div>
 
-    <!-- Yönetim Paneli -->
-    <div id="dashboard" class="dashboard">
-      <h2>👑 Acces Yönetim Paneli</h2>
-      
-      <!-- Key Üretici -->
-      <div style="background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h4 style="margin-top:0;">Yeni Key Üret</h4>
-        <input type="number" id="keyCredits" value="100" placeholder="Sorgu Hakkı" style="width: 120px;">
-        <button onclick="createKey()">Key Oluştur</button>
+    <div id="admin-content">
+      <h1>👑 Acces Admin Panel</h1>
+      <div class="section">
+        <h3>🔑 Yeni Key Üret</h3>
+        <br>
+        <label>Verilecek Sorgu Hakkı</label>
+        <input type="number" id="rights-count" value="100">
+        <button class="btn-create" onclick="generateKey()">Key Oluştur</button>
       </div>
 
-      <!-- Key Listesi -->
-      <h3>🔑 Sistemdeki Key'ler</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Key (Kod)</th>
-            <th>Hak</th>
-            <th>Durum</th>
-            <th>Tarih</th>
-          </tr>
-        </thead>
-        <tbody id="keyTable"></tbody>
-      </table>
+      <div>
+        <h3>🔑 Sistemdeki Key'ler</h3>
+        <table>
+          <thead>
+            <tr><th>Key</th><th>Hak</th><th>İşlemler</th></tr>
+          </thead>
+          <tbody id="keys-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- UYARISIZ POPUP KUTUSU -->
+  <div class="modal-bg" id="key-modal">
+    <div class="modal-box">
+      <h2 style="color:#22c55e;">🎉 Key Üretildi!</h2>
+      <div class="key-box" id="modal-key-val">ACCES-KEY-XXXX</div>
+      <button class="btn-create" onclick="copyModalKey()" id="copy-btn-text">📋 Kopyala</button>
+      <button style="background:#64748b; color:#fff; width:100%; margin-top:8px;" onclick="closeModal()">Kapat</button>
     </div>
   </div>
 
   <script>
-    let currentPass = "";
+    let adminToken = '';
 
-    async function login() {
-      const pass = document.getElementById('adminPass').value;
-      try {
-        const res = await fetch('/api/admin/list', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: pass })
-        });
-        
-        if (res.ok) {
-          currentPass = pass;
-          document.getElementById('loginScreen').style.display = 'none';
-          document.getElementById('dashboard').style.display = 'block';
-          loadKeys(await res.json());
-        } else {
-          alert("Hatalı Şifre!");
-        }
-      } catch(e) { alert("Sunucu hatası!"); }
+    function login() {
+      adminToken = document.getElementById('admin-pass').value;
+      loadKeys();
     }
 
-    function loadKeys(data) {
-      const tbody = document.getElementById('keyTable');
-      tbody.innerHTML = '';
-      
-      for (const [key, info] of Object.entries(data.keys)) {
-        const row = `<tr>
-          <td style="font-family:monospace; color:#fff;"><b>${key}</b></td>
-          <td>${info.credits} Sorgu</td>
-          <td>${info.isUsed ? '<span class="status-used">Kullanıldı</span>' : '<span class="status-active">Aktif (Kullanılmadı)</span>'}</td>
-          <td>${info.createdAt || '-'}</td>
-        </tr>`;
-        tbody.innerHTML += row;
+    async function loadKeys() {
+      try {
+        const res = await fetch('/api/admin/keys', { headers: { 'x-admin-password': adminToken } });
+        if (!res.ok) return alert('Hatalı Şifre!');
+        
+        const keys = await res.json();
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+
+        const tbody = document.getElementById('keys-table');
+        tbody.innerHTML = '';
+
+        Object.keys(keys).forEach(key => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${key}</code></td>
+            <td>${keys[key]} Hak</td>
+            <td>
+              <button class="btn-copy" onclick="copyText('${key}')">📋 Kopyala</button>
+              <button class="btn-delete" onclick="deleteKey('${key}')">❌ İptal Et</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) { alert('Hata oluştu!'); }
+    }
+
+    async function generateKey() {
+      const count = document.getElementById('rights-count').value;
+      const res = await fetch('/api/admin/generate-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminToken },
+        body: JSON.stringify({ rights: parseInt(count) })
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('modal-key-val').innerText = data.key;
+        document.getElementById('copy-btn-text').innerText = "📋 Kopyala";
+        document.getElementById('key-modal').style.display = 'flex';
+        loadKeys();
       }
     }
 
-    async function createKey() {
-      const credits = document.getElementById('keyCredits').value;
-      try {
-        const res = await fetch('/api/admin/create-key', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: currentPass, credits })
-        });
-        
-        const data = await res.json();
-        if (res.ok) {
-          alert(`Yeni Key Üretildi:\n\n${data.newKey}\n\nBu kodu müşteriye gönderebilirsin!`);
-          // Listeyi Yenile
-          const listRes = await fetch('/api/admin/list', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: currentPass })
-          });
-          loadKeys(await listRes.json());
-        }
-      } catch(e) { alert("Key oluşturulamadı!"); }
+    async function deleteKey(key) {
+      if (!confirm(`"${key}" kodunu silmek istediğine emin misin?`)) return;
+      await fetch('/api/admin/delete-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': adminToken },
+        body: JSON.stringify({ key })
+      });
+      loadKeys();
     }
+
+    function copyModalKey() {
+      const val = document.getElementById('modal-key-val').innerText;
+      copyText(val);
+      document.getElementById('copy-btn-text').innerText = "✅ Kopyalandı!";
+    }
+
+    function closeModal() {
+      document.getElementById('key-modal').style.display = 'none';
+    }
+
+    function copyText(text) {
+      const input = document.createElement("textarea");
+      input.value = text;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+    }
+
+    document.getElementById('login-form').style.display = 'block';
   </script>
 </body>
 </html>

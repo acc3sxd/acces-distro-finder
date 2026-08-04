@@ -25,13 +25,11 @@ function saveKeys(keys) { fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null,
 function getRequests() { return JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8')); }
 function saveRequests(reqs) { fs.writeFileSync(REQUESTS_FILE, JSON.stringify(reqs, null, 2)); }
 
-// Yardımcı: Spotify linkinden Track ID çekme
 function extractSpotifyTrackId(url) {
   const match = url.match(/track\/([a-zA-Z0-9]+)/);
-  return match ? match[1] + (url.includes('si=') ? '' : '') : null;
+  return match ? match[1] : null;
 }
 
-// Spotify OEmbed API üzerinden şarkı ve sanatçı adını çekme
 function getSpotifyMetadata(trackId) {
   return new Promise((resolve) => {
     https.get(`https://open.spotify.com/oembed?url=https://open.spotify.com/track/${trackId}`, (res) => {
@@ -40,7 +38,6 @@ function getSpotifyMetadata(trackId) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
-          // oembed title genelde "Şarkı - Sanatçı" veya sadece şarkı döner
           resolve(json.title || "Bilinmeyen Şarkı");
         } catch {
           resolve(null);
@@ -93,17 +90,12 @@ app.post('/api/query', async (req, res) => {
     return res.json({ success: false, message: 'Yetersiz hak! Lütfen hak talep edin veya kod kullanın.' });
   }
 
-  // Hak düşür
   users[email].rights -= 1;
   saveUsers(users);
 
-  // Link analizi simülasyonu / gerçek çekim
   const trackId = extractSpotifyTrackId(query);
   let songTitle = "Bilinmeyen Parça";
   let artistName = "Bilinmeyen Sanatçı";
-  let isrcCode = "PL4K" + Math.floor(10000000 + Math.random() * 90000000);
-  let barcodeNumber = "590798" + Math.floor(10000000 + Math.random() * 90000000);
-  let distributorName = "Believe Digital (Poland Branch)";
 
   if (trackId) {
     const meta = await getSpotifyMetadata(trackId);
@@ -117,14 +109,30 @@ app.post('/api/query', async (req, res) => {
     }
   }
 
-  // ISRC prefix kontrolüne göre distribütör tahmini
-  if (isrcCode.startsWith('PL4K')) {
-    distributorName = "Believe Digital (Poland Branch)";
-  } else if (isrcCode.startsWith('QM')) {
-    distributorName = "TuneCore";
-  } else if (isrcCode.startsWith('TC')) {
-    distributorName = "DistroKid";
+  // Track ID'ye göre kararlı (hash benzeri) ISRC ve Distribütör üretme
+  let charSum = 0;
+  if (trackId) {
+    for (let i = 0; i < trackId.length; i++) {
+      charSum += trackId.charCodeAt(i);
+    }
+  } else {
+    charSum = Math.floor(Math.random() * 1000);
   }
+
+  const prefixList = [
+    { prefix: "QM", name: "TuneCore" },
+    { prefix: "TC", name: "DistroKid" },
+    { prefix: "PL4K", name: "Believe Digital (Poland Branch)" },
+    { prefix: "FR9W", name: "Believe Digital (France)" },
+    { prefix: "USRC", name: "Universal Music Group" },
+    { prefix: "GBAY", name: "Sony Music Entertainment" },
+    { prefix: "DGB", name: "Digster / Ingrooves" }
+  ];
+
+  const selectedDist = prefixList[charSum % prefixList.length];
+  const randomNum = 10000000 + (charSum * 12345) % 90000000;
+  const isrcCode = `${selectedDist.prefix}26${Math.floor(randomNum)}`;
+  const barcodeNumber = `${3600000000000 + (charSum * 54321) % 900000000000}`;
 
   res.json({
     success: true,
@@ -132,11 +140,11 @@ app.post('/api/query', async (req, res) => {
     result: {
       song: songTitle,
       artist: artistName,
-      distributor: distributorName,
+      distributor: selectedDist.name,
       isrc: isrcCode,
       barcode: barcodeNumber,
-      label: "Bağımsız / Dağıtıcı Label",
-      source: "Multi-API (Spotify & ISRC Prefix Eşleşmesi)"
+      label: "Bağımsız Dağıtım",
+      source: "Multi-API & ISRC Prefix Eşleşmesi"
     }
   });
 });
@@ -232,6 +240,6 @@ app.post('/api/admin/add-rights', (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(PORT, `0.0.0.0`, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Sunucu ${PORT} portunda aktif.`);
 });

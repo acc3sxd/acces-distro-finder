@@ -1,248 +1,82 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
-const https = require('https');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const USERS_FILE = path.join(__dirname, 'users.json');
-const KEYS_FILE = path.join(__dirname, 'keys.json');
-const REQUESTS_FILE = path.join(__dirname, 'requests.json');
+const CLIENT_ID = '228167a24a3a410cba364cfe15878301';
+const CLIENT_SECRET = '428dd9bfb46d4c8e9c56a04f7f0cbd1d';
 
-if (!fs.existsSync(USERS_FILE)) fs.writeFileSync(USERS_FILE, JSON.stringify({}));
-if (!fs.existsSync(KEYS_FILE)) fs.writeFileSync(KEYS_FILE, JSON.stringify({}));
-if (!fs.existsSync(REQUESTS_FILE)) fs.writeFileSync(REQUESTS_FILE, JSON.stringify([]));
+let cachedToken = null;
+let tokenExpiresAt = 0;
 
-function getUsers() { return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')); }
-function saveUsers(users) { fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2)); }
+async function getSpotifyToken() {
+  if (cachedToken && Date.now() < tokenExpiresAt) return cachedToken;
 
-function getKeys() { return JSON.parse(fs.readFileSync(KEYS_FILE, 'utf8')); }
-function saveKeys(keys) { fs.writeFileSync(KEYS_FILE, JSON.stringify(keys, null, 2)); }
-
-function getRequests() { return JSON.parse(fs.readFileSync(REQUESTS_FILE, 'utf8')); }
-function saveRequests(reqs) { fs.writeFileSync(REQUESTS_FILE, JSON.stringify(reqs, null, 2)); }
-
-function extractSpotifyTrackId(url) {
-  const match = url.match(/track\/([a-zA-Z0-9]+)/);
-  return match ? match[1] : null;
-}
-
-// Spotify oembed ile güvenli şarkı/sanatçı çekme
-function getSpotifyMetadata(trackId) {
-  return new Promise((resolve) => {
-    https.get(`https://open.spotify.com/oembed?url=https://open.spotify.com/track/${trackId}`, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          resolve(json.title || null);
-        } catch {
-          resolve(null);
-        }
-      });
-    }).on('error', () => resolve(null));
-  });
-}
-
-// --- KULLANICI İŞLEMLERİ ---
-
-app.post('/api/register', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) return res.json({ success: false, message: 'Tüm alanları doldurun!' });
-
-  let users = getUsers();
-  if (users[email]) return res.json({ success: false, message: 'Bu mail zaten kayıtlı!' });
-
-  users[email] = { password, rights: 3 }; 
-  saveUsers(users);
-  res.json({ success: true });
-});
-
-app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
-  let users = getUsers();
-
-  if (users[email] && users[email].password === password) {
-    res.json({ success: true });
-  } else {
-    res.json({ success: false, message: 'Hatalı mail veya şifre!' });
-  }
-});
-
-app.get('/api/user-info', (req, res) => {
-  const email = req.query.email;
-  let users = getUsers();
-  if (users[email]) {
-    res.json({ success: true, rights: users[email].rights });
-  } else {
-    res.json({ success: false });
-  }
-});
-
-app.post('/api/query', async (req, res) => {
-  const { email, query } = req.body;
-  let users = getUsers();
-
-  if (!users[email] || users[email].rights <= 0) {
-    return res.json({ success: false, message: 'Yetersiz hak! Lütfen hak talep edin veya kod kullanın.' });
-  }
-
-  users[email].rights -= 1;
-  saveUsers(users);
-
-  const trackId = extractSpotifyTrackId(query);
+  const auth = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
   
-  // Varsayılan Değerler (Eğer oembed boş dönerse senin attığın görseldeki gibi temiz dursun)
-  let songTitle = "Ala Gözlüm - Slowed";
-  let artistName = "Trustyxld, Kameloxld";
-  let distributorName = "FreshTunes";
-  let isrcCode = "QT5M42650853";
-  let barcodeNumber = "739915641991";
-  let sourceText = "Prefix Eşleşmesi (QT5M)";
+  const response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${auth}`
+    },
+    body: 'grant_type=client_credentials'
+  });
 
-  if (trackId) {
-    const meta = await getSpotifyMetadata(trackId);
-    if (meta) {
-      // Spotify oembed genelde "Şarkı Adı - song by Sanatçı..." döner veya düz başlık döner
-      if (meta.includes('by')) {
-        const parts = meta.split(' by ');
-        songTitle = parts[0].replace(/ - .*/, '');
-        artistName = parts[1] || "Bağımsız Sanatçı";
-      } else {
-        songTitle = meta;
+  const data = await response.json();
+  if (data.access_token) {
+    cachedToken = data.access_token;
+    tokenExpiresAt = Date.now() + ((data.expires_in || 3600) * 1000) - 60000;
+    return cachedToken;
+  } else {
+    throw new Error('Spotify Token alınamadı!');
+  }
+}
+
+app.post('/api/check-distro', async (req, res) => {
+  const { trackId } = req.body;
+  if (!trackId) return res.json({ success: false, message: 'Geçersiz track ID' });
+
+  try {
+    const token = await getSpotifyToken();
+
+    // Şarkı Bilgisi
+    const trackRes = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const trackData = await trackRes.json();
+
+    if (!trackData || !trackData.album) {
+      return res.json({ success: false, message: 'Spotify\'da şarkı bulunamadı!' });
+    }
+
+    // Albüm Bilgisi
+    const albumRes = await fetch(`https://api.spotify.com/v1/albums/${trackData.album.id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const albumData = await albumRes.json();
+
+    res.json({
+      success: true,
+      track: {
+        name: trackData.name,
+        artists: trackData.artists.map(a => a.name).join(', '),
+        isrc: trackData.external_ids?.isrc || null,
+        upc: albumData?.external_ids?.upc || albumData?.external_ids?.ean || null,
+        label: albumData?.label || null,
+        copyrights: albumData?.copyrights || []
       }
-    }
+    });
 
-    // Linke özel kararlı hash üretimi (Her link kendi verisini sabit tutsun)
-    let charSum = 0;
-    for (let i = 0; i < trackId.length; i++) {
-      charSum += trackId.charCodeAt(i);
-    }
-
-    const distList = [
-      { name: "FreshTunes", prefix: "QT5M", barcode: "7399156" },
-      { name: "DistroKid", prefix: "TC", barcode: "196292" },
-      { name: "TuneCore", prefix: "QM", barcode: "859732" },
-      { name: "Believe Digital", prefix: "PL4K", barcode: "590798" }
-    ];
-
-    const chosen = distList[charSum % distList.length];
-    distributorName = chosen.name;
-    isrcCode = `${chosen.prefix}26${Math.floor(1000000 + (charSum * 4321) % 9000000)}`;
-    barcodeNumber = `${chosen.barcode}${Math.floor(100000 + (charSum * 1234) % 900000)}`;
-    sourceText = `Prefix Eşleşmesi (${chosen.prefix})`;
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: 'Sunucu tarafında hata oluştu.' });
   }
-
-  res.json({
-    success: true,
-    remainingRights: users[email].rights,
-    result: {
-      song: songTitle,
-      artist: artistName,
-      distributor: distributorName,
-      isrc: isrcCode,
-      barcode: barcodeNumber,
-      label: "Girilmemiş",
-      source: sourceText
-    }
-  });
-});
-
-app.post('/api/request-rights', (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.json({ success: false, message: 'Geçersiz mail!' });
-
-  let requests = getRequests();
-  if (!requests.some(r => r.email === email)) {
-    requests.push({ email, date: new Date().toLocaleString() });
-    saveRequests(requests);
-  }
-
-  res.json({ success: true });
-});
-
-app.post('/api/redeem-key', (req, res) => {
-  const { email, key } = req.body;
-  let users = getUsers();
-  let keys = getKeys();
-
-  if (!users[email]) return res.json({ success: false, message: 'Kullanıcı bulunamadı!' });
-  if (!keys[key]) return res.json({ success: false, message: 'Geçersiz veya kullanılmış key!' });
-
-  const addedRights = keys[key];
-  users[email].rights += addedRights;
-  saveUsers(users);
-
-  delete keys[key];
-  saveKeys(keys);
-
-  res.json({ success: true, remainingRights: users[email].rights, added: addedRights });
-});
-
-// --- ADMIN PANELİ ---
-const ADMIN_PASS = process.env.ADMIN_PASS || '03omer07';
-
-app.get('/api/admin/data', (req, res) => {
-  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Yetkisiz!' });
-  }
-  
-  let users = getUsers();
-  let keys = getKeys();
-  let requests = getRequests();
-
-  res.json({ users, keys, requests });
-});
-
-app.post('/api/admin/generate-key', (req, res) => {
-  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Yetkisiz!' });
-  }
-  const { rights } = req.body;
-  const randomKey = 'ACCES-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-  
-  let keys = getKeys();
-  keys[randomKey] = rights || 10;
-  saveKeys(keys);
-
-  res.json({ success: true, key: randomKey });
-});
-
-app.post('/api/admin/delete-key', (req, res) => {
-  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Yetkisiz!' });
-  }
-  const { key } = req.body;
-  let keys = getKeys();
-  if (keys[key]) {
-    delete keys[key];
-    saveKeys(keys);
-  }
-  res.json({ success: true });
-});
-
-app.post('/api/admin/add-rights', (req, res) => {
-  if (req.headers['x-admin-password'] !== ADMIN_PASS) {
-    return res.status(401).json({ error: 'Yetkisiz!' });
-  }
-  const { email, amount } = req.body;
-  let users = getUsers();
-  if (users[email]) {
-    users[email].rights += parseInt(amount || 0);
-    saveUsers(users);
-  }
-
-  let requests = getRequests();
-  requests = requests.filter(r => r.email !== email);
-  saveRequests(requests);
-
-  res.json({ success: true });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Sunucu ${PORT} portunda aktif.`);
+  console.log(`Sunucu ${PORT} portunda aktif!`);
 });

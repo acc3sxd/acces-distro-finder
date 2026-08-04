@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dağıtım Bulucu & Sorgu Paneli</title>
+  <title>Kayıt Ol & Giriş Yap</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
     body { background-color: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -13,16 +13,20 @@
       padding: 40px 30px;
       border-radius: 16px;
       width: 100%;
-      max-width: 420px;
+      max-width: 400px;
       border: 1px solid #1f2937;
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #f8fafc; }
-    p.sub { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; color: #f8fafc; }
+    p.sub { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+
+    .tabs { display: flex; margin-bottom: 24px; background: #030712; border-radius: 8px; padding: 4px; border: 1px solid #1f2937; }
+    .tab { flex: 1; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; color: #94a3b8; background: transparent; border: none; transition: 0.2s; }
+    .tab.active { background: #1f2937; color: #38bdf8; }
     
-    .input-group { text-align: left; margin-bottom: 20px; }
-    .input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; }
+    .input-group { text-align: left; margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
     .input-group input {
       width: 100%;
       padding: 12px 16px;
@@ -47,6 +51,7 @@
       font-size: 14px;
       cursor: pointer;
       transition: background-color 0.2s;
+      margin-top: 10px;
     }
     .btn:hover { background-color: #0ea5e9; }
     .btn-success { background-color: #22c55e; color: #fff; }
@@ -56,90 +61,172 @@
     .info-box div { font-size: 14px; margin-bottom: 6px; color: #cbd5e1; }
     .info-box span { color: #38bdf8; font-weight: bold; }
 
-    #app-screen, #login-screen { display: none; }
-    .error-msg { color: #fca5a5; font-size: 13px; margin-top: 10px; display: none; }
+    .form-container { display: none; }
+    .form-container.active { display: block; }
+    #app-screen { display: none; }
+    .msg { font-size: 13px; margin-top: 12px; }
+    .error { color: #fca5a5; }
+    .success { color: #86efac; }
   </style>
 </head>
 <body>
 
-  <!-- GİRİŞ (KEY KONTROL) EKRANI -->
-  <div class="card" id="login-screen">
-    <h1>🔑 Lisans Girişi</h1>
-    <p class="sub">Devam etmek için size verilen key kodunu girin.</p>
-    <div class="input-group">
-      <label>Lisans Key Kodu</label>
-      <input type="text" id="license-key" placeholder="Key kodunuzu girin...">
+  <!-- GİRİŞ & KAYIT KARTI -->
+  <div class="card" id="auth-card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
+      <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
     </div>
-    <button class="btn" onclick="checkKey()">Giriş Yap</button>
-    <div class="error-msg" id="login-error">Geçersiz veya süresi bitmiş key!</div>
+
+    <!-- GİRİŞ FORMU -->
+    <div class="form-container active" id="login-form">
+      <h1>Tekrar Hoşgeldin</h1>
+      <p class="sub">Hesabına giriş yaparak devam et.</p>
+      <div class="input-group">
+        <label>E-Mail Adresi</label>
+        <input type="email" id="login-email" placeholder="ornek@mail.com">
+      </div>
+      <div class="input-group">
+        <label>Şifre</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="loginUser()">Giriş Yap</button>
+      <div class="msg error" id="login-msg"></div>
+    </div>
+
+    <!-- KAYIT FORMU -->
+    <div class="form-container" id="register-form">
+      <h1>Hesap Oluştur</h1>
+      <p class="sub">Hemen ücretsiz kaydol ve başla.</p>
+      <div class="input-group">
+        <label>E-Mail Adresi</label>
+        <input type="email" id="reg-email" placeholder="ornek@mail.com">
+      </div>
+      <div class="input-group">
+        <label>Şifre</label>
+        <input type="password" id="reg-password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-success" onclick="registerUser()">Kayıt Ol</button>
+      <div class="msg" id="reg-msg"></div>
+    </div>
   </div>
 
-  <!-- UYGULAMA / SORGULAMA EKRANI -->
+  <!-- KULLANICI PANELİ -->
   <div class="card" id="app-screen" style="max-width: 600px;">
-    <h1>🚀 Sorgu Paneli</h1>
-    <p class="sub">Sistem aktif ve kullanıma hazır.</p>
+    <h1>🚀 Kullanıcı Paneli</h1>
+    <p class="sub">Sistem aktif.</p>
     
     <div class="info-box">
-      <div>Kullanılan Key: <span id="txt-key">-</span></div>
+      <div>Giriş Yapılan Mail: <span id="txt-email">-</span></div>
       <div>Kalan Sorgu Hakkı: <span id="txt-rights">0</span></div>
     </div>
 
     <div class="input-group">
-      <label>Sorgulanacak Değer / Veri</label>
-      <input type="text" id="query-input" placeholder="Sorgulamak istediğiniz veriyi yazın...">
+      <label>Sorgulanacak Değer</label>
+      <input type="text" id="query-input" placeholder="Aranacak veriyi girin...">
     </div>
     <button class="btn btn-success" onclick="makeQuery()">Sorgula</button>
     <div id="result-area" style="margin-top: 15px; text-align: left; font-size: 13px; color: #38bdf8;"></div>
+    <button class="btn" style="background:#7f1d1d; color:#fca5a5; margin-top:20px;" onclick="logout()">Çıkış Yap</button>
   </div>
 
   <script>
-    let currentKey = localStorage.getItem('user_key') || '';
+    let currentUser = localStorage.getItem('user_email') || '';
 
-    if (currentKey) {
-      verifyAndOpen(currentKey);
-    } else {
-      document.getElementById('login-screen').style.display = 'block';
+    if (currentUser) {
+      openDashboard(currentUser);
     }
 
-    async function checkKey() {
-      const key = document.getElementById('license-key').value.trim();
-      if (!key) return;
-
-      verifyAndOpen(key);
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+      
+      if (tab === 'login') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('login-form').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('register-form').classList.add('active');
+      }
     }
 
-    async function verifyAndOpen(key) {
+    async function registerUser() {
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const msg = document.getElementById('reg-msg');
+
+      if (!email || !password) {
+        msg.className = 'msg error';
+        msg.innerText = 'Tüm alanları doldurmalısın!';
+        return;
+      }
+
       try {
-        const res = await fetch('/api/check-key', {
+        const res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key })
+          body: JSON.stringify({ email, password })
         });
         const data = await res.json();
 
         if (data.success) {
-          currentKey = key;
-          localStorage.setItem('user_key', key);
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('app-screen').style.display = 'block';
-          document.getElementById('txt-key').innerText = key;
-          document.getElementById('txt-rights').innerText = data.rights;
+          msg.className = 'msg success';
+          msg.innerText = 'Kayıt başarılı! Giriş yapabilirsin.';
+          setTimeout(() => switchTab('login'), 1500);
         } else {
-          localStorage.removeItem('user_key');
-          document.getElementById('login-screen').style.display = 'block';
-          document.getElementById('login-error').style.display = 'block';
+          msg.className = 'msg error';
+          msg.innerText = data.message || 'Kayıt başarısız!';
         }
       } catch (err) {
-        alert('Sunucu bağlantı hatası!');
+        msg.className = 'msg error';
+        msg.innerText = 'Bağlantı hatası!';
+      }
+    }
+
+    async function loginUser() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      const msg = document.getElementById('login-msg');
+
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('user_email', email);
+          openDashboard(email);
+        } else {
+          msg.innerText = data.message || 'Hatalı mail veya şifre!';
+        }
+      } catch (err) {
+        msg.innerText = 'Bağlantı hatası!';
+      }
+    }
+
+    async function openDashboard(email) {
+      document.getElementById('auth-card').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      document.getElementById('txt-email').innerText = email;
+
+      // Hakları çek
+      const res = await fetch('/api/user-info?email=' + encodeURIComponent(email));
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('txt-rights').innerText = data.rights;
       }
     }
 
     async function makeQuery() {
       const query = document.getElementById('query-input').value;
+      const email = localStorage.getItem('user_email');
       const res = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: currentKey, query })
+        body: JSON.stringify({ email, query })
       });
       const data = await res.json();
       if (data.success) {
@@ -148,6 +235,11 @@
       } else {
         alert(data.message || 'Sorgu başarısız!');
       }
+    }
+
+    function logout() {
+      localStorage.removeItem('user_email');
+      location.reload();
     }
   </script>
 </body>

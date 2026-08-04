@@ -10,7 +10,7 @@
     
     .card {
       background: #1a1a1a;
-      padding: 40px 30px;
+      padding: 30px;
       border-radius: 12px;
       width: 100%;
       max-width: 450px;
@@ -19,7 +19,6 @@
       text-align: center;
     }
     h1 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #ff3333; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    p.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
 
     .tabs { display: flex; margin-bottom: 20px; background: #121212; border-radius: 6px; padding: 3px; border: 1px solid #2a2a2a; }
     .tab { flex: 1; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 4px; color: #888; background: transparent; border: none; transition: 0.2s; }
@@ -58,6 +57,8 @@
     .btn-secondary:hover { background-color: #444; color: #fff; }
     .btn-claim { background-color: #2563eb; margin-top: 8px; }
     .btn-claim:hover { background-color: #1d4ed8; }
+    .btn-buy { background-color: #10b981; margin-top: 8px; }
+    .btn-buy:hover { background-color: #059669; }
 
     .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 15px; text-align: left; font-size: 13px; }
     .info-box div { margin-bottom: 4px; color: #aaa; }
@@ -66,7 +67,7 @@
     .form-container { display: none; }
     .form-container.active { display: block; }
     #app-screen { display: none; }
-    .msg { font-size: 12px; margin-top: 10px; }
+    .msg { font-size: 12px; margin-top: 8px; }
     .error { color: #ff6b6b; }
     .success { color: #51cf66; }
   </style>
@@ -124,12 +125,15 @@
     </div>
     <button class="btn" onclick="makeQuery()">Distribütörü Yakala</button>
     
-    <div id="result-area" style="margin-top: 15px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
+    <div id="result-area" style="margin-top: 12px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
     
-    <!-- HAK TALEP ET ALANI -->
-    <button class="btn btn-claim" onclick="requestMoreRights()">Hak Talep Et (Ücretsiz)</button>
-    <div id="claim-msg" class="msg" style="margin-top: 6px;"></div>
+    <!-- ÜCRETSİZ HAK TALEP ET -->
+    <button class="btn btn-claim" onclick="requestFreeRights()">Hak Talep Et (Ücretsiz)</button>
+    <div id="claim-msg" class="msg"></div>
 
+    <!-- ÜCRETLİ HAK SATIN AL -->
+    <button class="btn btn-buy" onclick="buyRights()">Hak Satın Al (Pro Paket)</button>
+    
     <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
   </div>
 
@@ -239,10 +243,15 @@
       }
     }
 
-    function requestMoreRights() {
+    function requestFreeRights() {
       const claimMsg = document.getElementById('claim-msg');
       claimMsg.className = 'msg success';
-      claimMsg.innerText = 'Hak talebiniz alındı! Admin onayından sonra e-postanıza tanımlanacaktır.';
+      claimMsg.innerText = 'Ücretsiz hak talebiniz iletildi! İnceleniyor.';
+    }
+
+    function buyRights() {
+      // Buraya Shopier veya ödeme linkini ekleyebilirsin kanka
+      window.open('https://www.shopier.com/', '_blank');
     }
 
     function logout() {

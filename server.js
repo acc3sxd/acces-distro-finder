@@ -64,7 +64,7 @@ app.post('/api/query', (req, res) => {
   let users = getUsers();
 
   if (!users[email] || users[email].rights <= 0) {
-    return res.json({ success: false, message: 'Yetersiz hak! Lütfen hak talep edin.' });
+    return res.json({ success: false, message: 'Yetersiz hak! Lütfen hak talep edin veya kod kullanın.' });
   }
 
   users[email].rights -= 1;
@@ -88,6 +88,31 @@ app.post('/api/request-rights', (req, res) => {
   }
 
   res.json({ success: true });
+});
+
+// Lisans Kodu Aktif Etme Endpoint'i
+app.post('/api/redeem-key', (req, res) => {
+  const { email, key } = req.body;
+  let users = getUsers();
+  let keys = getKeys();
+
+  if (!users[email]) {
+    return res.json({ success: false, message: 'Kullanıcı bulunamadı!' });
+  }
+
+  if (!keys[key]) {
+    return res.json({ success: false, message: 'Geçersiz veya kullanılmış key!' });
+  }
+
+  const addedRights = keys[key];
+  users[email].rights += addedRights;
+  saveUsers(users);
+
+  // Key kullanıldıktan sonra silinir
+  delete keys[key];
+  saveKeys(keys);
+
+  res.json({ success: true, remainingRights: users[email].rights, added: addedRights });
 });
 
 // --- ADMIN PANELİ ---

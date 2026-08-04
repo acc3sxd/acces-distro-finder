@@ -3,76 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Giriş & Sorgu Paneli</title>
+  <title>Acces Distro Finder</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    body { background-color: #121212; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
     
     .card {
-      background: #111827;
+      background: #1a1a1a;
       padding: 40px 30px;
-      border-radius: 16px;
+      border-radius: 12px;
       width: 100%;
-      max-width: 400px;
-      border: 1px solid #1f2937;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      max-width: 450px;
+      border: 1px solid #2a2a2a;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
       text-align: center;
     }
-    h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; color: #f8fafc; }
-    p.sub { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #ff3333; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    p.sub { font-size: 13px; color: #888; margin-bottom: 20px; }
 
-    .tabs { display: flex; margin-bottom: 24px; background: #030712; border-radius: 8px; padding: 4px; border: 1px solid #1f2937; }
-    .tab { flex: 1; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; color: #94a3b8; background: transparent; border: none; transition: 0.2s; }
-    .tab.active { background: #1f2937; color: #38bdf8; }
+    .tabs { display: flex; margin-bottom: 20px; background: #121212; border-radius: 6px; padding: 3px; border: 1px solid #2a2a2a; }
+    .tab { flex: 1; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 4px; color: #888; background: transparent; border: none; transition: 0.2s; }
+    .tab.active { background: #2a2a2a; color: #ff3333; }
     
-    .input-group { text-align: left; margin-bottom: 16px; }
-    .input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; font-weight: 500; }
+    .input-group { text-align: left; margin-bottom: 15px; }
+    .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; font-weight: 500; }
     .input-group input {
       width: 100%;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #374151;
-      background-color: #030712;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background-color: #121212;
       color: #fff;
       font-size: 14px;
       outline: none;
       transition: border-color 0.2s;
     }
-    .input-group input:focus { border-color: #38bdf8; }
+    .input-group input:focus { border-color: #ff3333; }
 
     .btn {
       width: 100%;
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: none;
-      background-color: #38bdf8;
-      color: #0f172a;
-      font-weight: 600;
+      background-color: #ff3333;
+      color: #fff;
+      font-weight: 700;
       font-size: 14px;
       cursor: pointer;
       transition: background-color 0.2s;
       margin-top: 10px;
     }
-    .btn:hover { background-color: #0ea5e9; }
-    .btn-success { background-color: #22c55e; color: #fff; }
-    .btn-success:hover { background-color: #16a34a; }
+    .btn:hover { background-color: #e02424; }
+    .btn-secondary { background-color: #333; color: #aaa; margin-top: 15px; }
+    .btn-secondary:hover { background-color: #444; color: #fff; }
 
-    .info-box { background: #030712; padding: 16px; border-radius: 10px; border: 1px solid #1f2937; margin-bottom: 20px; text-align: left; }
-    .info-box div { font-size: 14px; margin-bottom: 6px; color: #cbd5e1; }
-    .info-box span { color: #38bdf8; font-weight: bold; }
+    .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 15px; text-align: left; font-size: 13px; }
+    .info-box div { margin-bottom: 4px; color: #aaa; }
+    .info-box span { color: #ff3333; font-weight: bold; }
 
     .form-container { display: none; }
     .form-container.active { display: block; }
     #app-screen { display: none; }
-    .msg { font-size: 13px; margin-top: 12px; }
-    .error { color: #fca5a5; }
-    .success { color: #86efac; }
+    .msg { font-size: 12px; margin-top: 10px; }
+    .error { color: #ff6b6b; }
+    .success { color: #51cf66; }
   </style>
 </head>
 <body>
 
   <!-- GİRİŞ & KAYIT KARTI -->
   <div class="card" id="auth-card">
+    <h1>🎧 Acces Distro Finder</h1>
     <div class="tabs">
       <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
       <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
@@ -80,8 +81,6 @@
 
     <!-- GİRİŞ FORMU -->
     <div class="form-container active" id="login-form">
-      <h1>Tekrar Hoşgeldin</h1>
-      <p class="sub">Hesabına giriş yaparak devam et.</p>
       <div class="input-group">
         <label>E-Mail Adresi</label>
         <input type="email" id="login-email" placeholder="ornek@mail.com">
@@ -96,8 +95,6 @@
 
     <!-- KAYIT FORMU -->
     <div class="form-container" id="register-form">
-      <h1>Hesap Oluştur</h1>
-      <p class="sub">Hemen kaydol ve başla.</p>
       <div class="input-group">
         <label>E-Mail Adresi</label>
         <input type="email" id="reg-email" placeholder="ornek@mail.com">
@@ -106,28 +103,28 @@
         <label>Şifre</label>
         <input type="password" id="reg-password" placeholder="••••••••">
       </div>
-      <button class="btn btn-success" onclick="registerUser()">Kayıt Ol</button>
+      <button class="btn" onclick="registerUser()">Kayıt Ol</button>
       <div class="msg" id="reg-msg"></div>
     </div>
   </div>
 
   <!-- ARAMA / KULLANICI PANELİ -->
-  <div class="card" id="app-screen" style="max-width: 600px;">
-    <h1>🚀 Arama Paneli</h1>
-    <p class="sub">Sistem aktif.</p>
+  <div class="card" id="app-screen">
+    <h1>🎧 Acces Distro Finder</h1>
     
     <div class="info-box">
-      <div>Giriş Yapılan Mail: <span id="txt-email">-</span></div>
-      <div>Kalan Sorgu Hakkı: <span id="txt-rights">0</span></div>
+      <div>Mail: <span id="txt-email">-</span></div>
+      <div>Kalan Hak: <span id="txt-rights">0</span></div>
     </div>
 
     <div class="input-group">
-      <label>Sorgulanacak Değer</label>
-      <input type="text" id="query-input" placeholder="Aranacak veriyi girin...">
+      <input type="text" id="query-input" placeholder="https://open.spotify.com/track/...">
     </div>
-    <button class="btn btn-success" onclick="makeQuery()">Sorgula</button>
-    <div id="result-area" style="margin-top: 15px; text-align: left; font-size: 13px; color: #38bdf8;"></div>
-    <button class="btn" style="background:#7f1d1d; color:#fca5a5; margin-top:20px;" onclick="logout()">Çıkış Yap</button>
+    <button class="btn" onclick="makeQuery()">Distribütörü Yakala</button>
+    
+    <div id="result-area" style="margin-top: 15px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
+    
+    <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
   </div>
 
   <script>
@@ -230,7 +227,7 @@
       const data = await res.json();
       if (data.success) {
         document.getElementById('txt-rights').innerText = data.remainingRights;
-        document.getElementById('result-area').innerText = "Sonuç: " + data.result;
+        document.getElementById('result-area').innerText = data.result;
       } else {
         alert(data.message || 'Sorgu başarısız!');
       }

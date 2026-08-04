@@ -74,7 +74,6 @@
 </head>
 <body>
 
-  <!-- GİRİŞ & KAYIT KARTI -->
   <div class="card" id="auth-card">
     <h1>🎧 Acces Distro Finder</h1>
     <div class="tabs">
@@ -82,7 +81,6 @@
       <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
     </div>
 
-    <!-- GİRİŞ FORMU -->
     <div class="form-container active" id="login-form">
       <div class="input-group">
         <label>E-Mail Adresi</label>
@@ -96,7 +94,6 @@
       <div class="msg error" id="login-msg"></div>
     </div>
 
-    <!-- KAYIT FORMU -->
     <div class="form-container" id="register-form">
       <div class="input-group">
         <label>E-Mail Adresi</label>
@@ -111,7 +108,6 @@
     </div>
   </div>
 
-  <!-- ARAMA / KULLANICI PANELİ -->
   <div class="card" id="app-screen">
     <h1>🎧 Acces Distro Finder</h1>
     
@@ -127,11 +123,9 @@
     
     <div id="result-area" style="margin-top: 12px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
     
-    <!-- ÜCRETSİZ HAK TALEP ET -->
     <button class="btn btn-claim" onclick="requestFreeRights()">Hak Talep Et (Ücretsiz)</button>
     <div id="claim-msg" class="msg"></div>
 
-    <!-- ÜCRETLİ HAK SATIN AL -->
     <button class="btn btn-buy" onclick="buyRights()">Hak Satın Al (Pro Paket)</button>
     
     <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
@@ -243,14 +237,27 @@
       }
     }
 
-    function requestFreeRights() {
+    async function requestFreeRights() {
+      const email = localStorage.getItem('user_email');
       const claimMsg = document.getElementById('claim-msg');
-      claimMsg.className = 'msg success';
-      claimMsg.innerText = 'Ücretsiz hak talebiniz iletildi! İnceleniyor.';
+      
+      const res = await fetch('/api/request-rights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        claimMsg.className = 'msg success';
+        claimMsg.innerText = 'Ücretsiz hak talebiniz admin paneline iletildi!';
+      } else {
+        claimMsg.className = 'msg error';
+        claimMsg.innerText = 'Talep gönderilemedi!';
+      }
     }
 
     function buyRights() {
-      // Buraya Shopier veya ödeme linkini ekleyebilirsin kanka
       window.open('https://www.shopier.com/', '_blank');
     }
 

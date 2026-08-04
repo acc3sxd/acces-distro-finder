@@ -69,25 +69,22 @@
       const res = await fetch('/api/admin/data', { headers: { 'x-admin-password': token } });
       const data = await res.json();
       
-      // Talepler
       const reqTbody = document.getElementById('requests-list');
       reqTbody.innerHTML = '';
       if (data.requests.length === 0) {
         reqTbody.innerHTML = `<tr><td colspan="2" style="color:#888;">Bekleyen talep yok.</td></tr>`;
       } else {
         data.requests.forEach(r => {
-          reqTbody.innerHTML += `<tr><td>${r.email}</td><td><button onclick="approveRequest('${r.email}')" style="background:#2ecc71; padding:4px 8px; margin:0;">+5 Hak Ver & Onayla</button></td></tr>`;
+          reqTbody.innerHTML += `<tr><td>${r.email}</td><td><button onclick="approveRequest('${r.email}')" style="background:#2ecc71; padding:4px 8px; margin:0;">Hak Ver & Onayla</button></td></tr>`;
         });
       }
 
-      // Kullanıcılar
       const userTbody = document.getElementById('users-list');
       userTbody.innerHTML = '';
       for (const [mail, info] of Object.entries(data.users)) {
         userTbody.innerHTML += `<tr><td>${mail}</td><td>${info.rights} Hak</td></tr>`;
       }
 
-      // Keyler
       const keyTbody = document.getElementById('keys-list');
       keyTbody.innerHTML = '';
       for (const [k, v] of Object.entries(data.keys)) {
@@ -110,12 +107,15 @@
     }
 
     async function approveRequest(email) {
+      let amount = prompt(email + " adresine kaç hak eklemek istiyorsun?", "10");
+      if (amount === null || amount.trim() === "") return;
+
       await fetch('/api/admin/add-rights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': token },
-        body: JSON.stringify({ email, amount: 5 })
+        body: JSON.stringify({ email, amount: parseInt(amount) })
       });
-      alert(email + ' adresine 5 hak tanımlandı!');
+      alert(email + ' adresine ' + amount + ' hak tanımlandı!');
       loadData();
     }
 

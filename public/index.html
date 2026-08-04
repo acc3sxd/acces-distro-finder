@@ -212,7 +212,6 @@
       document.getElementById('app-screen').style.display = 'block';
       document.getElementById('txt-email').innerText = email;
 
-      // Hakları çek
       const res = await fetch('/api/user-info?email=' + encodeURIComponent(email));
       const data = await res.json();
       if (data.success) {
@@ -231,7 +230,7 @@
       const data = await res.json();
       if (data.success) {
         document.getElementById('txt-rights').innerText = data.remainingRights;
-        document.getElementById('result-area').innerText = "Sonuç: " + JSON.stringify(data.result);
+        document.getElementById('result-area').innerText = "Sonuç: " + data.result;
       } else {
         alert(data.message || 'Sorgu başarısız!');
       }

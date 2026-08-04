@@ -5,328 +5,217 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Acces Distro Finder</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: #121212; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    
-    .card {
-      background: #1a1a1a;
-      padding: 30px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 480px;
-      border: 1px solid #2a2a2a;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
-      text-align: center;
-    }
-    h1 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #ff3333; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-    .tabs { display: flex; margin-bottom: 20px; background: #121212; border-radius: 6px; padding: 3px; border: 1px solid #2a2a2a; }
-    .tab { flex: 1; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 4px; color: #888; background: transparent; border: none; transition: 0.2s; }
-    .tab.active { background: #2a2a2a; color: #ff3333; }
-    
-    .input-group { text-align: left; margin-bottom: 12px; }
-    .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; font-weight: 500; }
-    .input-group input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background-color: #121212;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .input-group input:focus { border-color: #ff3333; }
-
-    .btn {
-      width: 100%;
-      padding: 11px;
-      border-radius: 6px;
-      border: none;
-      background-color: #ff3333;
-      color: #fff;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      margin-top: 8px;
-    }
-    .btn:hover { background-color: #e02424; }
-    .btn-secondary { background-color: #333; color: #aaa; margin-top: 12px; }
-    .btn-secondary:hover { background-color: #444; color: #fff; }
-    .btn-claim { background-color: #2563eb; }
-    .btn-claim:hover { background-color: #1d4ed8; }
-    .btn-buy { background-color: #10b981; }
-    .btn-buy:hover { background-color: #059669; }
-    .btn-redeem { background-color: #8b5cf6; }
-    .btn-redeem:hover { background-color: #7c3aed; }
-
-    .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 12px; text-align: left; font-size: 13px; }
-    .info-box div { margin-bottom: 4px; color: #aaa; }
-    .info-box span { color: #ff3333; font-weight: bold; }
-
-    .result-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; text-align: left; background: #121212; border-radius: 6px; overflow: hidden; border: 1px solid #2a2a2a; }
-    .result-table td { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; }
-    .result-table tr:last-child td { border-bottom: none; }
-    .result-table td:first-child { color: #aaa; width: 40%; }
-    .result-table td:last-child { color: #fff; font-weight: 500; word-break: break-all; }
-    .dist-highlight { color: #ff3333 !important; font-weight: bold !important; }
-
-    .form-container { display: none; }
-    .form-container.active { display: block; }
-    #app-screen { display: none; }
-    .msg { font-size: 12px; margin-top: 6px; }
-    .error { color: #ff6b6b; }
-    .success { color: #51cf66; }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #0f0f0f; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+    .card { background-color: #161616; width: 100%; max-width: 500px; padding: 30px; border-radius: 14px; border: 1px solid #2a1a1a; box-shadow: 0 10px 30px rgba(229, 9, 20, 0.15); }
+    h1 { color: #e50914; font-size: 24px; text-align: center; margin-top: 0; margin-bottom: 25px; font-weight: 800; letter-spacing: -0.5px; }
+    input[type="text"] { width: 100%; background-color: #222; color: #fff; border: 1px solid #3a2222; padding: 14px; border-radius: 8px; outline: none; margin-bottom: 14px; font-size: 14px; transition: 0.2s; }
+    input:focus { border-color: #e50914; box-shadow: 0 0 8px rgba(229, 9, 20, 0.4); }
+    button { width: 100%; background-color: #e50914; color: #fff; border: none; padding: 14px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3); }
+    button:hover { background-color: #ff1e27; transform: translateY(-1px); }
+    #loader { display: none; text-align: center; color: #ff4d4d; font-size: 13px; margin-top: 15px; font-weight: 600; }
+    #result { display: none; margin-top: 25px; padding: 20px; background-color: #201a1a; border-radius: 10px; border: 1px solid #3d2222; }
+    .row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+    .distro-value { color: #ff2a2a; font-weight: bold; font-size: 16px; text-align: right; }
+    .err { color: #ff5555; text-align: center; font-size: 13px; margin-top: 12px; display: none; background: rgba(255, 0, 0, 0.1); padding: 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
-  <div class="card" id="auth-card">
+  <div class="card">
     <h1>🎧 Acces Distro Finder</h1>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('login')">Giriş Yap</button>
-      <button class="tab" onclick="switchTab('register')">Kayıt Ol</button>
-    </div>
 
-    <div class="form-container active" id="login-form">
-      <div class="input-group">
-        <label>E-Mail Adresi</label>
-        <input type="email" id="login-email" placeholder="ornek@mail.com">
-      </div>
-      <div class="input-group">
-        <label>Şifre</label>
-        <input type="password" id="login-password" placeholder="••••••••">
-      </div>
-      <button class="btn" onclick="loginUser()">Giriş Yap</button>
-      <div class="msg error" id="login-msg"></div>
-    </div>
-
-    <div class="form-container" id="register-form">
-      <div class="input-group">
-        <label>E-Mail Adresi</label>
-        <input type="email" id="reg-email" placeholder="ornek@mail.com">
-      </div>
-      <div class="input-group">
-        <label>Şifre</label>
-        <input type="password" id="reg-password" placeholder="••••••••">
-      </div>
-      <button class="btn" onclick="registerUser()">Kayıt Ol</button>
-      <div class="msg" id="reg-msg"></div>
-    </div>
-  </div>
-
-  <div class="card" id="app-screen">
-    <h1>🎧 Acces Distro Finder</h1>
+    <input type="text" id="url" placeholder="https://open.spotify.com/track/...">
+    <button onclick="checkDistro()">Distribütörü Yakala</button>
     
-    <div class="info-box">
-      <div>Mail: <span id="txt-email">-</span></div>
-      <div>Kalan Hak: <span id="txt-rights">0</span></div>
-    </div>
+    <div id="loader">🌐 Multi-API (Spotify, Deezer, MusicBrainz) Taranıyor...</div>
+    <div id="err" class="err"></div>
 
-    <div class="input-group">
-      <input type="text" id="query-input" placeholder="https://open.spotify.com/track/...">
+    <div id="result">
+      <div class="row"><span>Şarkı:</span><span id="sTitle" style="color:#fff; font-weight:bold;"></span></div>
+      <div class="row"><span>Sanatçı:</span><span id="sArtist" style="color:#bbb"></span></div>
+      <hr style="border-color:#3d2222; margin:12px 0;">
+      <div class="row"><span>Gerçek Distribütör:</span><span id="sDistro" class="distro-value"></span></div>
+      <div class="row"><span>ISRC Kodu:</span><span id="sIsrc" style="color:#bbb; font-family:monospace"></span></div>
+      <div class="row"><span>Barkod (UPC/EAN):</span><span id="sUpc" style="color:#bbb; font-family:monospace"></span></div>
+      <div class="row"><span>Telif / Label:</span><span id="sLabel" style="color:#aaa; font-size:12px"></span></div>
+      <div class="row"><span>Tespit Kaynağı:</span><span id="sSource" style="color:#888; font-size:11px"></span></div>
     </div>
-    <button class="btn" onclick="makeQuery()">Distribütörü Yakala</button>
-    
-    <div id="result-area"></div>
-    
-    <div class="input-group" style="margin-top: 15px;">
-      <label>Satın Aldığın Lisans Kodu (Key)</label>
-      <input type="text" id="key-input" placeholder="ACCES-XXXXXXXX">
-    </div>
-    <button class="btn btn-redeem" onclick="redeemKey()">Kodu Aktif Et & Hak Yükle</button>
-    <div id="redeem-msg" class="msg"></div>
-
-    <button class="btn btn-claim" onclick="requestFreeRights()">Hak Talep Et (Ücretsiz)</button>
-    <div id="claim-msg" class="msg"></div>
-
-    <button class="btn btn-buy" onclick="buyRights()">Hak Satın Al (Pro Paket)</button>
-    
-    <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
   </div>
 
   <script>
-    let currentUser = localStorage.getItem('user_email') || '';
+    const fallbackPrefixes = [
+      { code: 'QT5M', name: 'FreshTunes' },
+      { code: 'QT8BW', name: 'FreshTunes' },
+      { code: 'PL4K', name: 'Believe Digital (Poland Branch)' },
+      { code: 'PL', name: 'Polonya Bağımsız Dağıtım Ağı' },
+      { code: 'QZME', name: 'DistroKid' },
+      { code: 'QZFY', name: 'DistroKid' },
+      { code: 'QZNW', name: 'DistroKid' },
+      { code: 'QZHN', name: 'DistroKid / SoundDrop' },
+      { code: 'QZ88', name: 'DistroKid' },
+      { code: 'QZ99', name: 'DistroKid' },
+      { code: 'EEHM', name: 'Estonia Regional / Independent Distro Network' },
+      { code: 'USCG', name: 'TuneCore' },
+      { code: 'USL4', name: 'TuneCore' },
+      { code: 'GBA9', name: 'TuneCore UK' },
+      { code: 'US2S', name: 'CD Baby' },
+      { code: 'USHM', name: 'CD Baby' },
+      { code: 'FR6X', name: 'Believe Digital' },
+      { code: 'DEKB', name: 'Kontor New Media / Feiyr' },
+      { code: 'SE6', name: 'Amuse' },
+      { code: 'USUY', name: 'ONErpm' },
+      { code: 'BR1', name: 'ONErpm Brazil' },
+      { code: 'GBL7', name: 'AWAL / Kobalt' },
+      { code: 'CA5', name: 'LANDR Music' },
+      { code: 'US38', name: 'UnitedMasters' },
+      { code: 'USH3', name: 'STEM Distribution' },
+      { code: 'USX9', name: 'Symphonic Distribution' },
+      { code: 'US95', name: 'SoundOn (TikTok)' },
+      { code: 'QT', name: 'FreshTunes / Independent Gateway' },
+      { code: 'QZ', name: 'DistroKid / Custom Registry' },
+      { code: 'QA', name: 'Amuse / Custom Digital Distro' },
+      { code: 'QX', name: 'Symphonic / Gateway' },
+      { code: 'TC', name: 'TuneCore' },
+      { code: 'SE', name: 'Amuse Sweden' },
+      { code: 'EE', name: 'Estonya / Baltic Registry' },
+      { code: 'FR', name: 'Believe Digital France' },
+      { code: 'GB', name: 'Ditto Music / AWAL UK' },
+      { code: 'NL', name: 'FUGA Distribution' },
+      { code: 'UK', name: 'RouteNote' },
+      { code: 'TR', name: 'Türkiye Dağıtım Network' }
+    ];
 
-    if (currentUser) {
-      openDashboard(currentUser);
-    }
-
-    function switchTab(tab) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
-      
-      if (tab === 'login') {
-        document.querySelectorAll('.tab')[0].classList.add('active');
-        document.getElementById('login-form').classList.add('active');
-      } else {
-        document.querySelectorAll('.tab')[1].classList.add('active');
-        document.getElementById('register-form').classList.add('active');
+    async function queryDeezer(isrc) {
+      if (!isrc) return null;
+      try {
+        const res = await fetch(`https://api.deezer.com/2.0/track/isrc:${isrc}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.label) return { distro: data.label, source: "Deezer Public API" };
+        }
+      } catch (e) {
+        console.warn("Deezer sorgu hatası:", e);
       }
+      return null;
     }
 
-    async function registerUser() {
-      const email = document.getElementById('reg-email').value.trim();
-      const password = document.getElementById('reg-password').value.trim();
-      const msg = document.getElementById('reg-msg');
+    async function queryMusicBrainz(isrc, upc) {
+      try {
+        if (isrc) {
+          const res = await fetch(`https://musicbrainz.org/ws/2/isrc/${isrc}?fmt=json&inc=releases+labels`, {
+            headers: { 'User-Agent': 'AccesDistroFinder/2.0.0 (contact@example.com)' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const label = data.releases?.[0]?.['label-info-list']?.[0]?.label?.name;
+            if (label && label.toLowerCase() !== '[no label]') return { distro: label, source: "MusicBrainz API" };
+          }
+        }
+        if (upc) {
+          const resUpc = await fetch(`https://musicbrainz.org/ws/2/release?query=barcode:${upc}&fmt=json&inc=labels`, {
+            headers: { 'User-Agent': 'AccesDistroFinder/2.0.0 (contact@example.com)' }
+          });
+          if (resUpc.ok) {
+            const dataUpc = await resUpc.json();
+            const label = dataUpc.releases?.[0]?.['label-info-list']?.[0]?.label?.name;
+            if (label && label.toLowerCase() !== '[no label]') return { distro: label, source: "MusicBrainz UPC API" };
+          }
+        }
+      } catch (e) {
+        console.warn("MusicBrainz hatası:", e);
+      }
+      return null;
+    }
 
-      if (!email || !password) {
-        msg.className = 'msg error';
-        msg.innerText = 'Tüm alanları doldurmalısın!';
+    async function resolveDistro(isrc, labelText, upc) {
+      const deezerResult = await queryDeezer(isrc);
+      if (deezerResult) return deezerResult;
+
+      const mbResult = await queryMusicBrainz(isrc, upc);
+      if (mbResult) return mbResult;
+
+      if (labelText) {
+        const l = labelText.toLowerCase();
+        if (l.includes('distrokid')) return { distro: 'DistroKid', source: 'Telif Analizi' };
+        if (l.includes('tunecore')) return { distro: 'TuneCore', source: 'Telif Analizi' };
+        if (l.includes('cd baby')) return { distro: 'CD Baby', source: 'Telif Analizi' };
+        if (l.includes('believe')) return { distro: 'Believe Digital', source: 'Telif Analizi' };
+        if (l.includes('amuse')) return { distro: 'Amuse', source: 'Telif Analizi' };
+        if (l.includes('onerpm')) return { distro: 'ONErpm', source: 'Telif Analizi' };
+        if (l.includes('fuga')) return { distro: 'FUGA', source: 'Telif Analizi' };
+        if (l.includes('soundon')) return { distro: 'SoundOn', source: 'Telif Analizi' };
+        if (l.includes('freshtunes')) return { distro: 'FreshTunes', source: 'Telif Analizi' };
+        if (l.includes('routenote')) return { distro: 'RouteNote', source: 'Telif Analizi' };
+      }
+
+      if (isrc) {
+        const cleanIsrc = isrc.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        for (const item of fallbackPrefixes) {
+          if (cleanIsrc.startsWith(item.code)) {
+            return { distro: item.name, source: `Prefix Eşleşmesi (${item.code})` };
+          }
+        }
+        return { distro: `${cleanIsrc.substring(0, 2)} Dağıtım Ağı`, source: 'ISRC Ülke Kodu' };
+      }
+
+      return { distro: "Bilinmeyen Distribütör", source: "Veri Yok" };
+    }
+
+    async function checkDistro() {
+      const urlInput = document.getElementById('url').value.trim();
+      const err = document.getElementById('err');
+      const loader = document.getElementById('loader');
+      const resDiv = document.getElementById('result');
+      
+      err.style.display = 'none';
+      resDiv.style.display = 'none';
+      loader.style.display = 'block';
+
+      const match = urlInput.match(/track[\/:]([a-zA-Z0-9]{22})/);
+      if(!match) {
+        loader.style.display = 'none';
+        err.innerText = "Geçersiz Spotify Linki!";
+        err.style.display = 'block';
         return;
       }
 
       try {
-        const res = await fetch('/api/register', {
+        const trackId = match[1];
+
+        const response = await fetch('/api/check-distro', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ trackId })
         });
-        const data = await res.json();
+        const data = await response.json();
 
-        if (data.success) {
-          msg.className = 'msg success';
-          msg.innerText = 'Kayıt başarılı! Giriş yapabilirsin.';
-          setTimeout(() => switchTab('login'), 1500);
-        } else {
-          msg.className = 'msg error';
-          msg.innerText = data.message || 'Kayıt başarısız!';
+        if (!data.success) {
+          throw new Error(data.message);
         }
-      } catch (err) {
-        msg.className = 'msg error';
-        msg.innerText = 'Bağlantı hatası!';
+
+        const tData = data.track;
+        const pLine = tData.copyrights.find(c => c.type === 'P')?.text || "";
+        const cLine = tData.copyrights.find(c => c.type === 'C')?.text || "";
+        const combinedLabel = `${tData.label || ''} ${pLine} ${cLine}`;
+
+        const result = await resolveDistro(tData.isrc, combinedLabel, tData.upc);
+
+        document.getElementById('sTitle').innerText = tData.name;
+        document.getElementById('sArtist').innerText = tData.artists;
+        document.getElementById('sDistro').innerText = result.distro;
+        document.getElementById('sIsrc').innerText = tData.isrc || "Yok";
+        document.getElementById('sUpc').innerText = tData.upc || "Yok";
+        document.getElementById('sLabel').innerText = tData.label || "Girilmemiş";
+        document.getElementById('sSource').innerText = result.source;
+
+        loader.style.display = 'none';
+        resDiv.style.display = 'block';
+      } catch (e) {
+        loader.style.display = 'none';
+        err.innerText = "Sorgulama esnasında hata oluştu!";
+        err.style.display = 'block';
       }
-    }
-
-    async function loginUser() {
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value.trim();
-      const msg = document.getElementById('login-msg');
-
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          localStorage.setItem('user_email', email);
-          openDashboard(email);
-        } else {
-          msg.innerText = data.message || 'Hatalı mail veya şifre!';
-        }
-      } catch (err) {
-        msg.innerText = 'Bağlantı hatası!';
-      }
-    }
-
-    async function openDashboard(email) {
-      document.getElementById('auth-card').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'block';
-      document.getElementById('txt-email').innerText = email;
-
-      const res = await fetch('/api/user-info?email=' + encodeURIComponent(email));
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('txt-rights').innerText = data.rights;
-      }
-    }
-
-    async function makeQuery() {
-      const query = document.getElementById('query-input').value;
-      const email = localStorage.getItem('user_email');
-      const resultArea = document.getElementById('result-area');
-      
-      resultArea.innerHTML = '<div style="margin-top:10px; font-size:13px; color:#aaa;">Aranıyor...</div>';
-
-      const res = await fetch('/api/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, query })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        document.getElementById('txt-rights').innerText = data.remainingRights;
-        const r = data.result;
-        
-        resultArea.innerHTML = `
-          <table class="result-table">
-            <tr><td>Şarkı:</td><td>${r.song}</td></tr>
-            <tr><td>Sanatçı:</td><td>${r.artist}</td></tr>
-            <tr><td>Gerçek Distribütör:</td><td class="dist-highlight">${r.distributor}</td></tr>
-            <tr><td>ISRC Kodu:</td><td>${r.isrc}</td></tr>
-            <tr><td>Barkod (UPC/EAN):</td><td>${r.barcode}</td></tr>
-            <tr><td>Telif / Label:</td><td>${r.label}</td></tr>
-            <tr><td>Tespit Kaynağı:</td><td>${r.source}</td></tr>
-          </table>
-        `;
-      } else {
-        alert(data.message || 'Sorgu başarısız!');
-        resultArea.innerHTML = '';
-      }
-    }
-
-    async function redeemKey() {
-      const key = document.getElementById('key-input').value.trim();
-      const email = localStorage.getItem('user_email');
-      const msg = document.getElementById('redeem-msg');
-
-      if (!key) {
-        msg.className = 'msg error';
-        msg.innerText = 'Lütfen bir key girin!';
-        return;
-      }
-
-      const res = await fetch('/api/redeem-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, key })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        msg.className = 'msg success';
-        msg.innerText = `Tebrikler! ${data.added} hak hesabınıza yüklendi.`;
-        document.getElementById('txt-rights').innerText = data.remainingRights;
-        document.getElementById('key-input').value = '';
-      } else {
-        msg.className = 'msg error';
-        msg.innerText = data.message || 'Geçersiz kod!';
-      }
-    }
-
-    async function requestFreeRights() {
-      const email = localStorage.getItem('user_email');
-      const claimMsg = document.getElementById('claim-msg');
-      
-      const res = await fetch('/api/request-rights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        claimMsg.className = 'msg success';
-        claimMsg.innerText = 'Ücretsiz hak talebiniz admin paneline iletildi!';
-      } else {
-        claimMsg.className = 'msg error';
-        claimMsg.innerText = 'Talep gönderilemedi!';
-      }
-    }
-
-    function buyRights() {
-      window.open('https://www.shopier.com/', '_blank');
-    }
-
-    function logout() {
-      localStorage.removeItem('user_email');
-      location.reload();
     }
   </script>
 </body>

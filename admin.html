@@ -25,7 +25,7 @@
     /* ŞIK POPUP KUTUSU (MODAL) */
     .modal-bg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:99999; }
     .modal-box { background: #1e293b; padding: 25px; border-radius: 12px; border: 2px solid #38bdf8; text-align: center; max-width: 400px; width: 90%; }
-    .key-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 20px; padding: 15px; margin: 15px 0; border-radius: 6px; border: 1px dashed #38bdf8; word-break: break-all; font-weight: bold; }
+    .key-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 20px; padding: 15px; margin: 15px 0; border-radius: 6px; border: 1px dashed #38bdf8; word-break: break-all; font-weight: bold; user-select: all; }
   </style>
 </head>
 <body>
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <!-- UYARISIZ POPUP KUTUSU -->
+  <!-- ÖZEL POPUP KUTUSU -->
   <div class="modal-bg" id="key-modal">
     <div class="modal-box">
       <h2 style="color:#22c55e;">🎉 Key Üretildi!</h2>
@@ -74,7 +74,12 @@
     let adminToken = '';
 
     function login() {
-      adminToken = document.getElementById('admin-pass').value;
+      const pass = document.getElementById('admin-pass').value;
+      if (pass !== '03omer07') {
+        alert('Hatalı Şifre!');
+        return;
+      }
+      adminToken = pass;
       loadKeys();
     }
 

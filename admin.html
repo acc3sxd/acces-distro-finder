@@ -3,70 +3,145 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acces Admin Panel</title>
+  <title>Admin Paneli</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .admin-card { background-color: #1e293b; padding: 30px; border-radius: 12px; width: 100%; max-width: 650px; border: 1px solid #334155; }
-    h1 { font-size: 24px; margin-bottom: 20px; color: #38bdf8; text-align: center; }
-    .section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #334155; }
-    label { display: block; margin-bottom: 8px; font-size: 14px; color: #94a3b8; }
-    input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #fff; margin-bottom: 15px; }
-    button { padding: 10px 15px; border: none; border-radius: 6px; background-color: #38bdf8; color: #0f172a; font-weight: bold; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    .btn-create { width: 100%; padding: 12px; background-color: #22c55e; color: #fff; font-size: 16px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #334155; font-size: 14px; }
-    th { color: #38bdf8; }
-    .btn-delete { background-color: #ef4444; color: #fff; margin-left: 5px; }
-    .btn-copy { background-color: #334155; color: #38bdf8; }
-    #login-form, #admin-content { display: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    
+    .login-box {
+      background: #111827;
+      padding: 40px 30px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 380px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+      text-align: center;
+    }
+    .login-box h1 { font-size: 20px; font-weight: 600; margin-bottom: 24px; color: #f8fafc; }
+    
+    .input-group { text-align: left; margin-bottom: 20px; }
+    .input-group label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 8px; font-weight: 500; }
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background-color: #030712;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { border-color: #38bdf8; }
 
-    /* ŞIK POPUP KUTUSU (MODAL) */
-    .modal-bg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:99999; }
-    .modal-box { background: #1e293b; padding: 25px; border-radius: 12px; border: 2px solid #38bdf8; text-align: center; max-width: 400px; width: 90%; }
-    .key-box { background: #0f172a; color: #38bdf8; font-family: monospace; font-size: 20px; padding: 15px; margin: 15px 0; border-radius: 6px; border: 1px dashed #38bdf8; word-break: break-all; font-weight: bold; user-select: all; }
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: #38bdf8;
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-login:hover { background-color: #0ea5e9; }
+
+    /* PANEL İÇERİĞİ */
+    .admin-container {
+      background-color: #111827;
+      padding: 30px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #1f2937; }
+    .admin-header h2 { font-size: 18px; color: #38bdf8; }
+
+    .gen-section {
+      background: #030712;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .gen-section .input-group { margin-bottom: 0; flex: 1; }
+    .btn-gen { padding: 12px 20px; background: #22c55e; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-gen:hover { background: #16a34a; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #1f2937; font-size: 13px; }
+    th { color: #94a3b8; font-weight: 500; }
+    td { color: #e2e8f0; }
+
+    .action-btn { padding: 6px 10px; border-radius: 6px; border: none; font-size: 12px; font-weight: 500; cursor: pointer; margin-right: 4px; }
+    .btn-c { background: #1f2937; color: #38bdf8; }
+    .btn-c:hover { background: #374151; }
+    .btn-d { background: #7f1d1d; color: #fca5a5; }
+    .btn-d:hover { background: #991b1b; }
+
+    #login-screen, #dashboard-screen { display: none; }
+
+    /* ŞIK POPUP */
+    .modal-bg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(4px); justify-content:center; align-items:center; z-index:999; }
+    .modal-card { background: #111827; padding: 30px; border-radius: 16px; border: 1px solid #374151; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); }
+    .modal-card h3 { color: #22c55e; margin-bottom: 12px; font-size: 18px; }
+    .key-display { background: #030712; color: #38bdf8; font-family: monospace; font-size: 18px; padding: 14px; margin: 16px 0; border-radius: 8px; border: 1px dashed #374151; user-select: all; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <div class="admin-card">
-    <div id="login-form">
-      <h1>👑 Admin Girişi</h1>
+  <!-- GİRİŞ EKRANI -->
+  <div class="login-box" id="login-screen">
+    <h1>🔐 Yönetici Girişi</h1>
+    <div class="input-group">
       <label>Admin Şifresi</label>
-      <input type="password" id="admin-pass" placeholder="Şifre">
-      <button class="btn-create" onclick="login()">Giriş Yap</button>
+      <input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') login()">
+    </div>
+    <button class="btn-login" onclick="login()">Giriş Yap</button>
+  </div>
+
+  <!-- PANEL EKRANI -->
+  <div class="admin-container" id="dashboard-screen">
+    <div class="admin-header">
+      <h2>🛡️ Lisans Yönetim Paneli</h2>
+      <button class="action-btn btn-d" onclick="location.reload()">Çıkış Yap</button>
     </div>
 
-    <div id="admin-content">
-      <h1>👑 Acces Admin Panel</h1>
-      <div class="section">
-        <h3>🔑 Yeni Key Üret</h3>
-        <br>
-        <label>Verilecek Sorgu Hakkı</label>
+    <div class="gen-section">
+      <div class="input-group">
+        <label>Sorgu Hakkı</label>
         <input type="number" id="rights-count" value="100">
-        <button class="btn-create" onclick="generateKey()">Key Oluştur</button>
       </div>
+      <button class="btn-gen" onclick="generateKey()">+ Yeni Key Üret</button>
+    </div>
 
-      <div>
-        <h3>🔑 Sistemdeki Key'ler</h3>
-        <table>
-          <thead>
-            <tr><th>Key</th><th>Hak</th><th>İşlemler</th></tr>
-          </thead>
-          <tbody id="keys-table"></tbody>
-        </table>
-      </div>
+    <div>
+      <h3 style="font-size: 14px; color: #94a3b8; margin-bottom: 8px;">Aktif Lisanslar</h3>
+      <table>
+        <thead>
+          <tr><th>Key Kodu</th><th>Kalan Hak</th><th>İşlemler</th></tr>
+        </thead>
+        <tbody id="keys-table"></tbody>
+      </table>
     </div>
   </div>
 
-  <!-- ÖZEL POPUP KUTUSU -->
+  <!-- POPUP -->
   <div class="modal-bg" id="key-modal">
-    <div class="modal-box">
-      <h2 style="color:#22c55e;">🎉 Key Üretildi!</h2>
-      <div class="key-box" id="modal-key-val">ACCES-KEY-XXXX</div>
-      <button class="btn-create" onclick="copyModalKey()" id="copy-btn-text">📋 Kopyala</button>
-      <button style="background:#64748b; color:#fff; width:100%; margin-top:8px;" onclick="closeModal()">Kapat</button>
+    <div class="modal-card">
+      <h3>🎉 Key Başarıyla Üretildi</h3>
+      <p style="font-size: 13px; color: #94a3b8;">Müşteriye göndereceğiniz kod:</p>
+      <div class="key-display" id="modal-key-val"></div>
+      <button class="btn-login" onclick="copyModalKey()" id="copy-btn-text" style="margin-bottom: 8px;">📋 Kopyala</button>
+      <button class="action-btn btn-c" style="width:100%; padding:10px;" onclick="closeModal()">Kapat</button>
     </div>
   </div>
 
@@ -89,8 +164,8 @@
         if (!res.ok) return alert('Hatalı Şifre!');
         
         const keys = await res.json();
-        document.getElementById('login-form').style.display = 'none';
-        document.getElementById('admin-content').style.display = 'block';
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard-screen').style.display = 'block';
 
         const tbody = document.getElementById('keys-table');
         tbody.innerHTML = '';
@@ -101,13 +176,13 @@
             <td><code>${key}</code></td>
             <td>${keys[key]} Hak</td>
             <td>
-              <button class="btn-copy" onclick="copyText('${key}')">📋 Kopyala</button>
-              <button class="btn-delete" onclick="deleteKey('${key}')">❌ İptal Et</button>
+              <button class="action-btn btn-c" onclick="copyText('${key}')">Kopyala</button>
+              <button class="action-btn btn-d" onclick="deleteKey('${key}')">İptal Et</button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) { alert('Hata oluştu!'); }
+      } catch (err) { alert('Bağlantı hatası!'); }
     }
 
     async function generateKey() {
@@ -127,7 +202,7 @@
     }
 
     async function deleteKey(key) {
-      if (!confirm(`"${key}" kodunu silmek istediğine emin misin?`)) return;
+      if (!confirm(`"${key}" kodunu iptal etmek istediğine emin misin?`)) return;
       await fetch('/api/admin/delete-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-admin-password': adminToken },
@@ -155,7 +230,7 @@
       document.body.removeChild(input);
     }
 
-    document.getElementById('login-form').style.display = 'block';
+    document.getElementById('login-screen').style.display = 'flex';
   </script>
 </body>
 </html>

@@ -13,7 +13,7 @@
       padding: 30px;
       border-radius: 12px;
       width: 100%;
-      max-width: 450px;
+      max-width: 480px;
       border: 1px solid #2a2a2a;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
       text-align: center;
@@ -65,6 +65,13 @@
     .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 12px; text-align: left; font-size: 13px; }
     .info-box div { margin-bottom: 4px; color: #aaa; }
     .info-box span { color: #ff3333; font-weight: bold; }
+
+    .result-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 13px; text-align: left; background: #121212; border-radius: 6px; overflow: hidden; border: 1px solid #2a2a2a; }
+    .result-table td { padding: 8px 12px; border-bottom: 1px solid #2a2a2a; }
+    .result-table tr:last-child td { border-bottom: none; }
+    .result-table td:first-child { color: #aaa; width: 40%; }
+    .result-table td:last-child { color: #fff; font-weight: 500; word-break: break-all; }
+    .dist-highlight { color: #ff3333 !important; font-weight: bold !important; }
 
     .form-container { display: none; }
     .form-container.active { display: block; }
@@ -123,9 +130,8 @@
     </div>
     <button class="btn" onclick="makeQuery()">Distribütörü Yakala</button>
     
-    <div id="result-area" style="margin-top: 10px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
+    <div id="result-area"></div>
     
-    <!-- LİSANS KODU KULLANMA ALANI -->
     <div class="input-group" style="margin-top: 15px;">
       <label>Satın Aldığın Lisans Kodu (Key)</label>
       <input type="text" id="key-input" placeholder="ACCES-XXXXXXXX">
@@ -233,17 +239,35 @@
     async function makeQuery() {
       const query = document.getElementById('query-input').value;
       const email = localStorage.getItem('user_email');
+      const resultArea = document.getElementById('result-area');
+      
+      resultArea.innerHTML = '<div style="margin-top:10px; font-size:13px; color:#aaa;">Aranıyor...</div>';
+
       const res = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, query })
       });
       const data = await res.json();
+
       if (data.success) {
         document.getElementById('txt-rights').innerText = data.remainingRights;
-        document.getElementById('result-area').innerText = data.result;
+        const r = data.result;
+        
+        resultArea.innerHTML = `
+          <table class="result-table">
+            <tr><td>Şarkı:</td><td>${r.song}</td></tr>
+            <tr><td>Sanatçı:</td><td>${r.artist}</td></tr>
+            <tr><td>Gerçek Distribütör:</td><td class="dist-highlight">${r.distributor}</td></tr>
+            <tr><td>ISRC Kodu:</td><td>${r.isrc}</td></tr>
+            <tr><td>Barkod (UPC/EAN):</td><td>${r.barcode}</td></tr>
+            <tr><td>Telif / Label:</td><td>${r.label}</td></tr>
+            <tr><td>Tespit Kaynağı:</td><td>${r.source}</td></tr>
+          </table>
+        `;
       } else {
         alert(data.message || 'Sorgu başarısız!');
+        resultArea.innerHTML = '';
       }
     }
 

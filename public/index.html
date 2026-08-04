@@ -56,6 +56,8 @@
     .btn:hover { background-color: #e02424; }
     .btn-secondary { background-color: #333; color: #aaa; margin-top: 15px; }
     .btn-secondary:hover { background-color: #444; color: #fff; }
+    .btn-claim { background-color: #2563eb; margin-top: 8px; }
+    .btn-claim:hover { background-color: #1d4ed8; }
 
     .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 15px; text-align: left; font-size: 13px; }
     .info-box div { margin-bottom: 4px; color: #aaa; }
@@ -124,6 +126,10 @@
     
     <div id="result-area" style="margin-top: 15px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
     
+    <!-- HAK TALEP ET ALANI -->
+    <button class="btn btn-claim" onclick="requestMoreRights()">Hak Talep Et (Ücretsiz)</button>
+    <div id="claim-msg" class="msg" style="margin-top: 6px;"></div>
+
     <button class="btn btn-secondary" onclick="logout()">Çıkış Yap</button>
   </div>
 
@@ -231,6 +237,12 @@
       } else {
         alert(data.message || 'Sorgu başarısız!');
       }
+    }
+
+    function requestMoreRights() {
+      const claimMsg = document.getElementById('claim-msg');
+      claimMsg.className = 'msg success';
+      claimMsg.innerText = 'Hak talebiniz alındı! Admin onayından sonra e-postanıza tanımlanacaktır.';
     }
 
     function logout() {

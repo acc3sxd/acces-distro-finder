@@ -24,11 +24,11 @@
     .tab { flex: 1; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 4px; color: #888; background: transparent; border: none; transition: 0.2s; }
     .tab.active { background: #2a2a2a; color: #ff3333; }
     
-    .input-group { text-align: left; margin-bottom: 15px; }
-    .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; font-weight: 500; }
+    .input-group { text-align: left; margin-bottom: 12px; }
+    .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; font-weight: 500; }
     .input-group input {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       border-radius: 6px;
       border: 1px solid #333;
       background-color: #121212;
@@ -41,7 +41,7 @@
 
     .btn {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       border-radius: 6px;
       border: none;
       background-color: #ff3333;
@@ -50,24 +50,26 @@
       font-size: 14px;
       cursor: pointer;
       transition: background-color 0.2s;
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .btn:hover { background-color: #e02424; }
-    .btn-secondary { background-color: #333; color: #aaa; margin-top: 15px; }
+    .btn-secondary { background-color: #333; color: #aaa; margin-top: 12px; }
     .btn-secondary:hover { background-color: #444; color: #fff; }
-    .btn-claim { background-color: #2563eb; margin-top: 8px; }
+    .btn-claim { background-color: #2563eb; }
     .btn-claim:hover { background-color: #1d4ed8; }
-    .btn-buy { background-color: #10b981; margin-top: 8px; }
+    .btn-buy { background-color: #10b981; }
     .btn-buy:hover { background-color: #059669; }
+    .btn-redeem { background-color: #8b5cf6; }
+    .btn-redeem:hover { background-color: #7c3aed; }
 
-    .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 15px; text-align: left; font-size: 13px; }
+    .info-box { background: #121212; padding: 12px; border-radius: 6px; border: 1px solid #2a2a2a; margin-bottom: 12px; text-align: left; font-size: 13px; }
     .info-box div { margin-bottom: 4px; color: #aaa; }
     .info-box span { color: #ff3333; font-weight: bold; }
 
     .form-container { display: none; }
     .form-container.active { display: block; }
     #app-screen { display: none; }
-    .msg { font-size: 12px; margin-top: 8px; }
+    .msg { font-size: 12px; margin-top: 6px; }
     .error { color: #ff6b6b; }
     .success { color: #51cf66; }
   </style>
@@ -121,8 +123,16 @@
     </div>
     <button class="btn" onclick="makeQuery()">Distribütörü Yakala</button>
     
-    <div id="result-area" style="margin-top: 12px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
+    <div id="result-area" style="margin-top: 10px; text-align: left; font-size: 13px; color: #51cf66; word-break: break-all;"></div>
     
+    <!-- LİSANS KODU KULLANMA ALANI -->
+    <div class="input-group" style="margin-top: 15px;">
+      <label>Satın Aldığın Lisans Kodu (Key)</label>
+      <input type="text" id="key-input" placeholder="ACCES-XXXXXXXX">
+    </div>
+    <button class="btn btn-redeem" onclick="redeemKey()">Kodu Aktif Et & Hak Yükle</button>
+    <div id="redeem-msg" class="msg"></div>
+
     <button class="btn btn-claim" onclick="requestFreeRights()">Hak Talep Et (Ücretsiz)</button>
     <div id="claim-msg" class="msg"></div>
 
@@ -234,6 +244,35 @@
         document.getElementById('result-area').innerText = data.result;
       } else {
         alert(data.message || 'Sorgu başarısız!');
+      }
+    }
+
+    async function redeemKey() {
+      const key = document.getElementById('key-input').value.trim();
+      const email = localStorage.getItem('user_email');
+      const msg = document.getElementById('redeem-msg');
+
+      if (!key) {
+        msg.className = 'msg error';
+        msg.innerText = 'Lütfen bir key girin!';
+        return;
+      }
+
+      const res = await fetch('/api/redeem-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, key })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        msg.className = 'msg success';
+        msg.innerText = `Tebrikler! ${data.added} hak hesabınıza yüklendi.`;
+        document.getElementById('txt-rights').innerText = data.remainingRights;
+        document.getElementById('key-input').value = '';
+      } else {
+        msg.className = 'msg error';
+        msg.innerText = data.message || 'Geçersiz kod!';
       }
     }
 
